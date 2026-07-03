@@ -761,21 +761,40 @@ function extractCampRoot(utm){
 async function fetchLiveData(){
   if(!LIVE_URLS.crm || !LIVE_URLS.marketing) return null;
 
-  // Tenta direto primeiro; se falhar por CORS, usa proxy
+  // Cache-buster: força o Google (e os proxies) a devolverem SEMPRE a versão
+  // mais recente. Sem isto, tanto o CDN do Google Publish quanto os proxies
+  // servem uma cópia em cache antiga → dashboard fica desatualizada.
+  const bust = url => url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+
+  // Tenta direto primeiro; se falhar por CORS, usa proxy (cada um recebe a URL já com cache-buster)
   const proxies = [
-    url => url,                                                   // 1. direto
-    url => 'https://corsproxy.io/?url=' + encodeURIComponent(url), // 2. corsproxy.io
-    url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url) // 3. allorigins
+    url => url,                                                         // 1. direto
+    url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),  // 2. allorigins
+    url => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(url), // 3. codetabs
+    url => 'https://corsproxy.io/?url=' + encodeURIComponent(url)       // 4. corsproxy.io
   ];
 
+  // Evita aceitar uma página de erro/login HTML (Google ou proxy) como se fosse CSV
+  function looksLikeCSV(t){
+    if(!t) return false;
+    const head = t.trimStart().slice(0, 200).toLowerCase();
+    if(head.startsWith('<')) return false; // <!doctype, <html, etc.
+    return true;
+  }
+
   async function fetchCSV(url){
+    const busted = bust(url);
+    let lastErr = null;
     for(const proxy of proxies){
       try{
-        const res = await fetch(proxy(url), {cache:'no-store'});
-        if(res.ok) return await res.text();
-      } catch(e){ /* tenta próximo proxy */ }
+        const res = await fetch(proxy(busted), {cache:'no-store'});
+        if(!res.ok){ lastErr = new Error('HTTP ' + res.status); continue; }
+        const text = await res.text();
+        if(looksLikeCSV(text)) return text;
+        lastErr = new Error('resposta não-CSV (cache ou erro HTML)');
+      } catch(e){ lastErr = e; /* tenta próximo proxy */ }
     }
-    throw new Error('Todos os proxies falharam para ' + url);
+    throw new Error('Falha ao buscar ' + url + (lastErr ? ' — ' + lastErr.message : ''));
   }
 
   const [crmCSV, mkCSV] = await Promise.all([
