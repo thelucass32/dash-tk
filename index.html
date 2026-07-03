@@ -782,24 +782,31 @@ async function fetchLiveData(){
     return true;
   }
 
-  async function fetchCSV(url){
+  const proxyNames = ['direto','allorigins','codetabs','corsproxy'];
+
+  async function fetchCSV(url, label){
     const busted = bust(url);
     let lastErr = null;
-    for(const proxy of proxies){
+    for(let p=0; p<proxies.length; p++){
       try{
-        const res = await fetch(proxy(busted), {cache:'no-store'});
-        if(!res.ok){ lastErr = new Error('HTTP ' + res.status); continue; }
+        const res = await fetch(proxies[p](busted), {cache:'no-store'});
+        if(!res.ok){ lastErr = new Error('HTTP ' + res.status); console.warn('[DEBUG]', label, 'via', proxyNames[p], '→ HTTP', res.status); continue; }
         const text = await res.text();
-        if(looksLikeCSV(text)) return text;
-        lastErr = new Error('resposta não-CSV (cache ou erro HTML)');
-      } catch(e){ lastErr = e; /* tenta próximo proxy */ }
+        if(looksLikeCSV(text)){
+          console.log('[DEBUG]', label, '✓ ok via', proxyNames[p], '·', text.length, 'chars');
+          return text;
+        }
+        lastErr = new Error('resposta não-CSV');
+        console.warn('[DEBUG]', label, 'via', proxyNames[p], '→ resposta não-CSV (cache/HTML). Início:', text.trimStart().slice(0,80));
+      } catch(e){ lastErr = e; console.warn('[DEBUG]', label, 'via', proxyNames[p], '→', e.message); }
     }
-    throw new Error('Falha ao buscar ' + url + (lastErr ? ' — ' + lastErr.message : ''));
+    throw new Error('Falha ao buscar ' + label + (lastErr ? ' — ' + lastErr.message : ''));
   }
 
+  console.log('[DEBUG] ⏳ Buscando dados ao vivo…', new Date().toLocaleTimeString('pt-BR'));
   const [crmCSV, mkCSV] = await Promise.all([
-    fetchCSV(LIVE_URLS.crm),
-    fetchCSV(LIVE_URLS.marketing)
+    fetchCSV(LIVE_URLS.crm, 'CRM'),
+    fetchCSV(LIVE_URLS.marketing, 'MARKETING')
   ]);
 
   const crmRows = parseCSV(crmCSV);
@@ -814,11 +821,18 @@ async function fetchLiveData(){
   const iStatus= colIx(/status/);
   const iFech  = colIx(/fechou/);
 
+  console.log('[DEBUG] CRM: linhas =', crmRows.length, '| cabeçalho =', h);
+  console.log('[DEBUG] CRM colunas detectadas → data:', iDate, 'utm:', iUtm, 'patrim:', iPatr, 'lead:', iLead, 'mql:', iMQL, 'mql+:', iMQLp, 'status:', iStatus, 'fechou:', iFech);
+  if(iDate < 0) console.error('[DEBUG] ⚠ Coluna de DATA não encontrada no CRM — nenhuma linha será usada!');
+
+  let crmMin=null, crmMax=null, crmSkipped=0;
   const agg = {};
   for(let i=1; i<crmRows.length; i++){
     const r = crmRows[i];
     const d = parseDate(r[iDate]);
-    if(!d) continue;
+    if(!d){ crmSkipped++; continue; }
+    if(!crmMin||d<crmMin) crmMin=d;
+    if(!crmMax||d>crmMax) crmMax=d;
     const croot = extractCampRoot(r[iUtm]);
     const patr  = normPatr(r[iPatr]);
     const key = d+'|'+croot+'|'+patr;
@@ -834,18 +848,26 @@ async function fetchLiveData(){
     const [d,c,p] = k.split('|');
     return [d, c, parseInt(p), v.l, v.m, v.mp, v.v];
   });
+  console.log('[DEBUG] CRM: intervalo de datas', crmMin, '→', crmMax, '| linhas ignoradas (data inválida):', crmSkipped);
 
   const mkRows = parseCSV(mkCSV);
   const hm = mkRows[0].map(s => s.toLowerCase().trim());
   const mD = hm.findIndex(x => /^data|date/.test(x));
   const mC = hm.findIndex(x => /campan/.test(x));
   const mI = hm.findIndex(x => /invest/.test(x));
+  console.log('[DEBUG] MARKETING: linhas =', mkRows.length, '| cabeçalho =', hm);
+  console.log('[DEBUG] MARKETING colunas → data:', mD, 'campanha:', mC, 'investimento:', mI);
+  if(mD < 0) console.error('[DEBUG] ⚠ Coluna de DATA não encontrada no MARKETING!');
+
+  let mkMin=null, mkMax=null, mkSkipped=0;
   const mkAgg = {};
   const campSet = new Set();
   for(let i=1; i<mkRows.length; i++){
     const r = mkRows[i];
-    const d = parseDate(r[mD]); if(!d) continue;
+    const d = parseDate(r[mD]); if(!d){ mkSkipped++; continue; }
     const c = String(r[mC]||'').trim(); if(!c) continue;
+    if(!mkMin||d<mkMin) mkMin=d;
+    if(!mkMax||d>mkMax) mkMax=d;
     campSet.add(c);
     const inv = parseMoney(r[mI]);
     const key = d+'|'+c;
@@ -855,6 +877,8 @@ async function fetchLiveData(){
     const [d,c] = k.split('|');
     return [d, c, Math.round(v*100)/100];
   });
+  console.log('[DEBUG] MARKETING: intervalo de datas', mkMin, '→', mkMax, '| linhas ignoradas:', mkSkipped, '| campanhas:', campSet.size);
+  console.log('[DEBUG] ✅ Dados processados — CRM:', newCrm.length, 'grupos · MK:', newMk.length, 'grupos');
 
   return {
     crm: newCrm,
