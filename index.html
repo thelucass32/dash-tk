@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ticker · Wealth Performance Dashboard</title>
+<title>Ticker · Wealth Performance Dashboard · Criativos V2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
@@ -262,6 +262,25 @@
   .camp-val{font-family:var(--mono);font-size:11px;color:var(--gold-2);text-align:right;}
   .camp-share{font-family:var(--serif);font-size:12px;color:var(--gray);text-align:right;}
 
+  .creative-table-wrap{width:100%;overflow-x:auto;}
+  .creative-table-wrap::-webkit-scrollbar{height:4px;}
+  .creative-table-wrap::-webkit-scrollbar-thumb{background:var(--line-2);}
+  .creative-row{display:grid;grid-template-columns:minmax(220px,1.7fr) minmax(150px,.9fr) 110px 88px 92px 72px 72px 78px 92px;gap:14px;align-items:center;
+    padding:12px 0;border-bottom:1px solid var(--line);font-size:12px;min-width:920px;}
+  .creative-row:last-child{border-bottom:none;}
+  .creative-row.head{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gray-2);border-bottom:1px solid var(--line-2);}
+  .creative-name{font-family:var(--mono);font-size:11px;color:var(--ice);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .creative-camp{font-family:var(--mono);font-size:10.5px;color:var(--gray-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .creative-link a{color:var(--gold-2);text-decoration:none;border-bottom:1px solid var(--gold-dim);font-size:11px;}
+  .creative-link a:hover{color:var(--ice);border-bottom-color:var(--gold-2);}
+  .creative-link .muted{color:var(--gray-3);font-size:11px;}
+  .creative-num{font-family:var(--mono);font-size:11px;text-align:right;color:var(--gray);}
+  .creative-num.gold{color:var(--gold-2);}
+  .creative-note{font-size:10.5px;color:var(--gray-2);margin-top:10px;font-family:var(--mono);}
+  .creative-row.total{border-top:1px solid var(--line-2);border-bottom:none;margin-top:6px;padding-top:14px;font-weight:600;background:linear-gradient(90deg,rgba(198,164,108,.08),transparent);}
+  .creative-row.total .creative-name{font-family:var(--serif);font-size:13px;color:var(--gold-2);}
+
+
   .src-row{display:grid;grid-template-columns:1fr 56px 56px 56px;padding:11px 0;
     border-bottom:1px solid var(--line);font-size:12px;align-items:center;}
   .src-row.head{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--gray-2);border-bottom:1px solid var(--line-2);}
@@ -416,6 +435,9 @@
     .camp-row{grid-template-columns:1fr 76px 44px;}
     .camp-bar-wrap{display:none;}
 
+    /* Criativos */
+    .creative-row{grid-template-columns:minmax(190px,1.6fr) minmax(130px,.9fr) 96px 70px 82px 66px 66px 70px 82px;gap:10px;min-width:980px;}
+
     /* Origem */
     .src-row{grid-template-columns:1fr 44px 44px 44px;}
     .src-row .src-label span:not(.src-dot){font-size:11px;}
@@ -463,6 +485,7 @@
       <div class="nav-section-label" style="margin-top:20px;">Estratégia</div>
       <button class="nav-item" data-target="origem"><span class="nav-dot"></span><span class="nav-icon">⊕</span><span class="nav-txt">Origem</span></button>
       <button class="nav-item" data-target="campanhas"><span class="nav-dot"></span><span class="nav-icon">⊞</span><span class="nav-txt">Campanhas</span></button>
+      <button class="nav-item" data-target="criativos"><span class="nav-dot"></span><span class="nav-icon">▣</span><span class="nav-txt">Criativos</span></button>
       <button class="nav-item" data-target="trend"><span class="nav-dot"></span><span class="nav-icon">⟋</span><span class="nav-txt">Tendência</span></button>
     </nav>
     <div class="sidebar-foot">
@@ -646,6 +669,19 @@
       </div>
     </div>
 
+    <!-- CRIATIVOS -->
+    <div class="section" id="criativos">
+      <div class="section-head"><h2 class="section-title">Criativos <em>CRM × marketing</em></h2><span class="section-tag">Criativo 05</span></div>
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Tabela por <em style="font-style:italic;color:var(--gold-2)">criativo</em></div><div style="font-size:11px;color:var(--gray-2);margin-top:4px">Cruza Ad Name, investimento e link do marketing com Lead, MQL, MQL+ e Fechou Consultoria do CRM</div></div><div class="card-sub">Atribuição</div></div>
+        <div class="creative-table-wrap">
+          <div class="creative-row head"><span>Criativo</span><span>Campanha</span><span style="text-align:right">Invest.</span><span style="text-align:right">Leads</span><span style="text-align:right">Tx. conv.</span><span style="text-align:right">MQL</span><span style="text-align:right">MQL+</span><span style="text-align:right">Vendas</span><span>Link</span></div>
+          <div id="creativeTable"></div>
+        </div>
+        <div class="creative-note" id="creativeNote">—</div>
+      </div>
+    </div>
+
     <!-- ORIGEM -->
     <div class="section" id="origem">
       <div class="section-head"><h2 class="section-title">Origem dos <em>qualificados</em></h2><span class="section-tag">Atribuição 05</span></div>
@@ -672,7 +708,7 @@
 
     <footer>
       <div>TICKER · WEALTH PERFORMANCE</div>
-      <div class="mono">Fonte: planilha "dashboard ticker" · CRM + Marketing · 26/06/2026</div>
+      <div class="mono">Fonte: planilha "dashboard ticker" · Marketing Ad Name/link + CRM criativo</div>
     </footer>
   </main>
 </div>
@@ -740,6 +776,20 @@ function parseMoney(s){
   const n = parseFloat(cleaned);
   return isNaN(n) ? 0 : n;
 }
+function numValue(s){
+  if(s===null||s===undefined||s==='') return 0;
+  if(typeof s === 'number') return isNaN(s) ? 0 : s;
+  const raw = String(s).trim();
+  if(!raw) return 0;
+  const normalized = raw.replace(/[^0-9,.-]/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');
+  const n = parseFloat(normalized);
+  return isNaN(n) ? 0 : n;
+}
+function isPositiveSaleFlag(v){
+  const s = normKey(v);
+  if(!s || ['0','n','no','false','falso'].includes(s) || /\b(nao|cancelad|perdid|lost)\b/.test(s)) return false;
+  return s === '1' || s === 'sim' || s === 's' || s === 'yes' || s === 'true' || s === 'verdadeiro' || /fechad|fechou|closed|won|ganho|aprovad|consultoria/.test(s);
+}
 function normPatr(p){
   if(!p) return 4;
   const s = String(p).replace(/\s/g,'');
@@ -756,6 +806,27 @@ function extractCampRoot(utm){
   const parts = u.split('-');
   if(parts.length>=3) return parts.slice(0,3).join('-');
   return u;
+}
+
+function stripAccents(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function cleanText(s){
+  return String(s||'').trim().replace(/\s+/g,' ');
+}
+function normKey(s){
+  return stripAccents(cleanText(s)).toLowerCase();
+}
+function normHeader(s){
+  return normKey(String(s||'').replace(/^\uFEFF/, '').replace(/^['\"]|['\"]$/g,''));
+}
+function normCreativeKey(s){
+  return normKey(s).replace(/^criativo[:\s-]*/,'').replace(/[\s_]+/g,' ').trim();
+}
+function pickHeader(headers, patterns){
+  const exact = headers.findIndex(h => patterns.some(re => re.exact && h === re.value));
+  if(exact >= 0) return exact;
+  return headers.findIndex(h => patterns.some(re => !re.exact && re.value.test(h)));
 }
 
 async function fetchLiveData(){
@@ -810,7 +881,7 @@ async function fetchLiveData(){
   ]);
 
   const crmRows = parseCSV(crmCSV);
-  const h = crmRows[0].map(s => s.toLowerCase().trim());
+  const h = crmRows[0].map(normHeader);
   const colIx = (re) => h.findIndex(x => re.test(x));
   const iUtm   = colIx(/utm.?campaign/);
   const iPatr  = colIx(/patrim/);
@@ -819,10 +890,18 @@ async function fetchLiveData(){
   const iMQL   = h.findIndex(x => x === 'mql');
   const iMQLp  = h.findIndex(x => /mql\+|mqlplus/.test(x));
   const iStatus= colIx(/status/);
-  const iFech  = colIx(/fechou/);
+  const iFech  = pickHeader(h, [
+    {exact:true, value:'fechou consultoria'},
+    {value:/fechou.*consultoria|consultoria.*fechou|^fechou$|fechou/}
+  ]);
+  const iCriativo = pickHeader(h, [
+    {exact:true, value:'criativo'},
+    {value:/^creative$/},
+    {value:/criativo|an[uú]ncio|ad.?name|creative/}
+  ]);
 
   console.log('[DEBUG] CRM: linhas =', crmRows.length, '| cabeçalho =', h);
-  console.log('[DEBUG] CRM colunas detectadas → data:', iDate, 'utm:', iUtm, 'patrim:', iPatr, 'lead:', iLead, 'mql:', iMQL, 'mql+:', iMQLp, 'status:', iStatus, 'fechou:', iFech);
+  console.log('[DEBUG] CRM colunas detectadas → data:', iDate, 'utm:', iUtm, 'patrim:', iPatr, 'lead:', iLead, 'mql:', iMQL, 'mql+:', iMQLp, 'status:', iStatus, 'fechou:', iFech, 'criativo:', iCriativo);
   if(iDate < 0) console.error('[DEBUG] ⚠ Coluna de DATA não encontrada no CRM — nenhuma linha será usada!');
 
   let crmMin=null, crmMax=null, crmSkipped=0;
@@ -835,28 +914,64 @@ async function fetchLiveData(){
     if(!crmMax||d>crmMax) crmMax=d;
     const croot = extractCampRoot(r[iUtm]);
     const patr  = normPatr(r[iPatr]);
-    const key = d+'|'+croot+'|'+patr;
-    if(!agg[key]) agg[key] = {l:0,m:0,mp:0,v:0};
+    const criativo = iCriativo >= 0 ? cleanText(r[iCriativo]) : '';
+    const key = d+'|'+croot+'|'+patr+'|'+normCreativeKey(criativo);
+    if(!agg[key]) agg[key] = {l:0,m:0,mp:0,v:0,criativo:criativo};
     if(parseInt(r[iLead])>0) agg[key].l += 1;
     if(parseInt(r[iMQL])>0)  agg[key].m += 1;
     if(parseInt(r[iMQLp])>0) agg[key].mp += 1;
-    const f = String(r[iFech]||'').trim();
-    const st = String(r[iStatus]||'').toUpperCase();
-    if(f==='1' || st.includes('FECHADO')) agg[key].v += 1;
+    const fechouConsultoria = iFech >= 0 ? r[iFech] : '';
+    const statusCRM = iStatus >= 0 ? r[iStatus] : '';
+    if(isPositiveSaleFlag(fechouConsultoria) || /fechad|closed|won|ganho/.test(normKey(statusCRM))) agg[key].v += 1;
   }
   const newCrm = Object.entries(agg).map(([k,v]) => {
     const [d,c,p] = k.split('|');
-    return [d, c, parseInt(p), v.l, v.m, v.mp, v.v];
+    return [d, c, parseInt(p), v.l, v.m, v.mp, v.v, v.criativo || ''];
   });
   console.log('[DEBUG] CRM: intervalo de datas', crmMin, '→', crmMax, '| linhas ignoradas (data inválida):', crmSkipped);
 
   const mkRows = parseCSV(mkCSV);
-  const hm = mkRows[0].map(s => s.toLowerCase().trim());
-  const mD = hm.findIndex(x => /^data|date/.test(x));
-  const mC = hm.findIndex(x => /campan/.test(x));
-  const mI = hm.findIndex(x => /invest/.test(x));
+  const hm = mkRows[0].map(normHeader);
+  const mD = pickHeader(hm, [
+    {exact:true, value:'data'},
+    {exact:true, value:'date'},
+    {exact:true, value:'day'},
+    {value:/^data$|^date$|^dia$|^day$/}
+  ]);
+  const mC = pickHeader(hm, [
+    {exact:true, value:'campaign name'},
+    {exact:true, value:'nome da campanha'},
+    {exact:true, value:'campanha'},
+    {value:/campanha|campaign/}
+  ]);
+  const mI = pickHeader(hm, [
+    {exact:true, value:'investimento'},
+    {exact:true, value:'amount spent'},
+    {exact:true, value:'spend'},
+    {value:/invest|amount.*spent|spend|valor.*gasto|gasto|cost|custo/}
+  ]);
+  const mConv = pickHeader(hm, [
+    {exact:true, value:'conversões'},
+    {exact:true, value:'conversoes'},
+    {exact:true, value:'conversions'},
+    {exact:true, value:'conversao'},
+    {exact:true, value:'conversão'},
+    {value:/^conv\.?$|convers|conversion|resultados?|results?|leads?$/}
+  ]);
+  const mCriativo = pickHeader(hm, [
+    {exact:true, value:'ad name'},
+    {exact:true, value:'nome do anuncio'},
+    {exact:true, value:'criativo'},
+    {value:/^ad\s*name$|nome.*anuncio|anuncio.*nome|criativo|creative|ad.?name/}
+  ]);
+  const mLink = pickHeader(hm, [
+    {exact:true, value:'link'},
+    {exact:true, value:'permalink'},
+    {exact:true, value:'permanentlink'},
+    {value:/perma.?link|link|url|video.?id|youtube/}
+  ]);
   console.log('[DEBUG] MARKETING: linhas =', mkRows.length, '| cabeçalho =', hm);
-  console.log('[DEBUG] MARKETING colunas → data:', mD, 'campanha:', mC, 'investimento:', mI);
+  console.log('[DEBUG] MARKETING colunas → data:', mD, 'campanha:', mC, 'investimento:', mI, 'conversões:', mConv, 'ad name:', mCriativo, 'link:', mLink);
   if(mD < 0) console.error('[DEBUG] ⚠ Coluna de DATA não encontrada no MARKETING!');
 
   let mkMin=null, mkMax=null, mkSkipped=0;
@@ -870,12 +985,17 @@ async function fetchLiveData(){
     if(!mkMax||d>mkMax) mkMax=d;
     campSet.add(c);
     const inv = parseMoney(r[mI]);
-    const key = d+'|'+c;
-    mkAgg[key] = (mkAgg[key]||0) + inv;
+    const criativo = mCriativo >= 0 ? cleanText(r[mCriativo]) : '';
+    const link = mLink >= 0 ? cleanText(r[mLink]) : '';
+    const key = d+'|'+c+'|'+normCreativeKey(criativo);
+    if(!mkAgg[key]) mkAgg[key] = {inv:0,conv:0,criativo:criativo,link:''};
+    mkAgg[key].inv += inv;
+    if(mConv >= 0) mkAgg[key].conv += numValue(r[mConv]);
+    if(link && !mkAgg[key].link) mkAgg[key].link = link;
   }
   const newMk = Object.entries(mkAgg).map(([k,v]) => {
     const [d,c] = k.split('|');
-    return [d, c, Math.round(v*100)/100];
+    return [d, c, Math.round(v.inv*100)/100, v.criativo || '', v.link || '', Math.round((v.conv||0)*100)/100];
   });
   console.log('[DEBUG] MARKETING: intervalo de datas', mkMin, '→', mkMax, '| linhas ignoradas:', mkSkipped, '| campanhas:', campSet.size);
   console.log('[DEBUG] ✅ Dados processados — CRM:', newCrm.length, 'grupos · MK:', newMk.length, 'grupos');
@@ -1002,6 +1122,75 @@ function compute(){
   }
   const campRanked = Object.entries(campMap).sort((a,b)=>b[1]-a[1]);
 
+  // Criativos CRM × marketing
+  // REGRA CORRIGIDA:
+  // - Marketing entra SOMENTE com Ad Name/Criativo + investimento + link.
+  // - CRM entra SOMENTE pela coluna "criativo" com Lead, MQL, MQL+ e Fechou Consultoria.
+  // - O cruzamento é feito pelo nome normalizado do criativo (Ad Name ⇄ CRM.criativo), nunca pelo nome da campanha.
+  const creativeMap = {};
+  function ensureCreative(label){
+    const clean = cleanText(label) || 'Sem criativo informado';
+    const key = normCreativeKey(clean) || 'sem-criativo-informado';
+    if(!creativeMap[key]){
+      creativeMap[key] = {
+        key,
+        name: clean,
+        campaigns: new Set(),
+        invest: 0,
+        leads: 0,
+        mql: 0,
+        mqlp: 0,
+        vendas: 0,
+        link: '',
+        mkRows: 0,
+        crmRows: 0
+      };
+    } else if(creativeMap[key].name === 'Sem criativo informado' && clean !== 'Sem criativo informado'){
+      creativeMap[key].name = clean;
+    }
+    return creativeMap[key];
+  }
+
+  // Marketing: agrega investimento/link por Ad Name. Não usa campanha como fallback do criativo.
+  for(const r of mk){
+    const adName = cleanText(r[3]);
+    const e = ensureCreative(adName);
+    e.invest += numValue(r[2]);
+    e.mkRows += 1;
+    if(r[1]) e.campaigns.add(r[1]);
+    if(r[4] && !e.link) e.link = r[4];
+  }
+
+  // CRM: agrega resultados por coluna "criativo". Lead/MQL/MQL+/Vendas vêm do CRM.
+  for(const r of crm){
+    const crmCreative = cleanText(r[7]);
+    const e = ensureCreative(crmCreative);
+    e.leads  += numValue(r[3]);
+    e.mql    += numValue(r[4]);
+    e.mqlp   += numValue(r[5]);
+    e.vendas += numValue(r[6]);
+    e.crmRows += 1;
+    if(r[1]) e.campaigns.add(r[1]);
+  }
+
+  const creativeRanked = Object.values(creativeMap)
+    .map(v => {
+      const txconv = v.leads ? v.vendas / v.leads : 0;
+      return {
+        ...v,
+        conv: v.leads, // compatibilidade visual: coluna agora é Leads do CRM
+        txconv,
+        campaigns: Array.from(v.campaigns).filter(Boolean).slice(0,3).join(' · ')
+      };
+    })
+    .filter(v => v.invest || v.leads || v.mql || v.mqlp || v.vendas)
+    .sort((a,b) => (b.invest-a.invest) || (b.vendas-a.vendas) || (b.mqlp-a.mqlp) || (b.mql-a.mql) || (b.leads-a.leads));
+
+  // Diagnóstico: quando o HTML cai no DATA embutido antigo, CRM vem com 7 colunas
+  // e Marketing com 3 colunas — ou seja, não existem r[7] (CRM criativo) nem r[3]/r[4] (Ad Name/link).
+  // Nesse caso, não renderizamos a linha agregada "Sem criativo informado" como se fosse resultado real.
+  const hasCreativeSource = DATA.mk.some(r => cleanText(r[3])) || DATA.crm.some(r => cleanText(r[7]));
+
   // Monthly
   const monthly = {};
   for(const r of crm){
@@ -1016,7 +1205,7 @@ function compute(){
   }
   const monthlyArr = Object.entries(monthly).sort().map(([m,v])=>({month:m,...v}));
 
-  return {lead,mql,mqlp,vendas,invest,patr,srcMap,campRanked,monthlyArr,
+  return {lead,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource,
           totalCRM:crm.length, totalMK:mk.length};
 }
 
@@ -1074,9 +1263,40 @@ const fmtDate = d => {
   return `${dd}/${m}/${y}`;
 };
 
+function escHTML(s){
+  return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function extractYouTubeId(raw){
+  const s = cleanText(raw).replace(/&amp;/g,'&');
+  if(!s) return '';
+  let m = s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,20})/i);
+  if(m) return m[1].split(/[?&#/]/)[0];
+  m = s.match(/[?&]v=([A-Za-z0-9_-]{6,20})/i);
+  if(m) return m[1].split(/[?&#/]/)[0];
+  const compact = s.replace(/[^A-Za-z0-9_-]/g,'');
+  return /^[A-Za-z0-9_-]{8,20}$/.test(compact) ? compact : '';
+}
+function creativeHref(raw){
+  const s = cleanText(raw).replace(/&amp;/g,'&');
+  if(!s) return '';
+  const urlMatch = s.match(/https?:\/\/[^\s"'<>),]+/i);
+  if(urlMatch) return urlMatch[0];
+  if(/^www\./i.test(s)) return 'https://' + s.replace(/\s/g,'');
+  const yt = extractYouTubeId(s);
+  if(yt) return 'https://www.youtube.com/watch?v=' + encodeURIComponent(yt);
+  return '';
+}
+function creativeLinkLabel(raw){
+  const s = cleanText(raw).toLowerCase();
+  if(!s) return '—';
+  if(s.includes('youtu') || (/^[a-z0-9_-]{8,}$/i.test(s) && !s.includes('/'))) return 'Abrir YouTube';
+  if(s.includes('facebook') || s.includes('instagram') || s.includes('fb.watch') || s.includes('meta')) return 'Abrir Meta';
+  return 'Abrir link';
+}
+
 function render(){
   const M = compute();
-  const {lead,mql,mqlp,vendas,invest,patr,srcMap,campRanked,monthlyArr} = M;
+  const {lead,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource} = M;
 
   // Period label
   document.getElementById('periodLabel').textContent = `${fmtDate(state.from)} → ${fmtDate(state.to)} · ${monthlyArr.length} meses · ${fmt(lead+mql+mqlp+vendas)} eventos`;
@@ -1204,6 +1424,65 @@ function render(){
       `;
       campTable.appendChild(row);
     }
+  }
+
+  // Criativos
+  const creativeTable = document.getElementById('creativeTable');
+  const creativeNote = document.getElementById('creativeNote');
+  creativeTable.innerHTML = '';
+  if(!hasCreativeSource){
+    creativeTable.innerHTML = '<div class="empty-state">A fonte carregada não trouxe Ad Name/link do marketing nem criativo do CRM. Por isso a tabela por criativo não pode ser calculada ainda.</div>';
+    creativeNote.textContent = 'Diagnóstico: o dashboard está usando dados locais/embutidos antigos ou a publicação CSV não trouxe as colunas esperadas. Verifique se o status está "Ao vivo" e se o console mostra ad name/link no MARKETING e criativo no CRM.';
+  } else if(!creativeRanked || creativeRanked.length===0){
+    creativeTable.innerHTML = '<div class="empty-state">Sem criativos no período selecionado</div>';
+    creativeNote.textContent = 'A tabela depende da coluna "Ad Name" no marketing e da coluna "criativo" no CRM; vendas vêm de "Fechou Consultoria" no CRM.';
+  } else {
+    let linked = 0, onlyCRM = 0, onlyMK = 0;
+    const totals = {invest:0, leads:0, mql:0, mqlp:0, vendas:0};
+    for(const c of creativeRanked){
+      const href = creativeHref(c.link);
+      if(href) linked += 1;
+      if(c.crmRows && !c.mkRows) onlyCRM += 1;
+      if(c.mkRows && !c.crmRows) onlyMK += 1;
+      totals.invest += numValue(c.invest);
+      totals.leads += numValue(c.leads);
+      totals.mql += numValue(c.mql);
+      totals.mqlp += numValue(c.mqlp);
+      totals.vendas += numValue(c.vendas);
+      const row = document.createElement('div');
+      row.className = 'creative-row';
+      const linkHTML = href
+        ? `<a href="${escHTML(href)}" target="_blank" rel="noopener noreferrer">${escHTML(creativeLinkLabel(c.link))}</a>`
+        : `<span class="muted">${c.link ? escHTML(c.link) : '—'}</span>`;
+      row.innerHTML = `
+        <span class="creative-name" title="${escHTML(c.name)}">${escHTML(c.name)}</span>
+        <span class="creative-camp" title="${escHTML(c.campaigns || '')}">${escHTML(c.campaigns || '—')}</span>
+        <span class="creative-num gold">R$ ${fmtMoneyInt(c.invest)}</span>
+        <span class="creative-num">${fmt(c.leads)}</span>
+        <span class="creative-num">${fmtPct(c.txconv)}</span>
+        <span class="creative-num">${fmt(c.mql)}</span>
+        <span class="creative-num gold">${fmt(c.mqlp)}</span>
+        <span class="creative-num gold">${fmt(c.vendas)}</span>
+        <span class="creative-link">${linkHTML}</span>
+      `;
+      creativeTable.appendChild(row);
+    }
+    const totalTx = totals.leads ? totals.vendas / totals.leads : 0;
+    const trow = document.createElement('div');
+    trow.className = 'creative-row total';
+    trow.innerHTML = `
+      <span class="creative-name">Total</span>
+      <span class="creative-camp">${fmt(creativeRanked.length)} criativos</span>
+      <span class="creative-num gold">R$ ${fmtMoneyInt(totals.invest)}</span>
+      <span class="creative-num">${fmt(totals.leads)}</span>
+      <span class="creative-num">${fmtPct(totalTx)}</span>
+      <span class="creative-num">${fmt(totals.mql)}</span>
+      <span class="creative-num gold">${fmt(totals.mqlp)}</span>
+      <span class="creative-num gold">${fmt(totals.vendas)}</span>
+      <span class="creative-link"><span class="muted">—</span></span>
+    `;
+    creativeTable.appendChild(trow);
+    creativeNote.textContent = `${fmt(creativeRanked.length)} criativos no período · ${fmt(linked)} com link/permalink · ${fmt(onlyMK)} só no marketing · ${fmt(onlyCRM)} só no CRM · Cruzamento = Marketing Ad Name ⇄ CRM criativo · Tx. conversão = Fechou Consultoria ÷ Leads.`;
   }
 
   // Source
@@ -1485,6 +1764,7 @@ function initFilters(){
       if(fresh){
         // Substitui dados em memória
         DATA = fresh;
+        recomputeDateBounds(false);
         // Atualiza lista de campanhas se mudou
         rebuildCampList();
         statusText.textContent = 'Ao vivo · ' + fmtTime();
