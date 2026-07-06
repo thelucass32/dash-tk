@@ -269,6 +269,13 @@
     padding:12px 0;border-bottom:1px solid var(--line);font-size:12px;min-width:920px;}
   .creative-row:last-child{border-bottom:none;}
   .creative-row.head{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gray-2);border-bottom:1px solid var(--line-2);}
+  .creative-row.head .sort-head{cursor:pointer;user-select:none;display:flex;align-items:center;gap:6px;transition:color .15s;}
+  .creative-row.head .sort-head.num{justify-content:flex-end;text-align:right;}
+  .creative-row.head .sort-head:hover{color:var(--gold-2);}
+  .creative-row.head .sort-head::after{content:'↕';font-size:8.5px;color:var(--gray-3);letter-spacing:0;}
+  .creative-row.head .sort-head.active{color:var(--gold-2);}
+  .creative-row.head .sort-head.active.asc::after{content:'▲';color:var(--gold);}
+  .creative-row.head .sort-head.active.desc::after{content:'▼';color:var(--gold);}
   .creative-name{font-family:var(--mono);font-size:11px;color:var(--ice);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .creative-camp{font-family:var(--mono);font-size:10.5px;color:var(--gray-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .creative-link a{color:var(--gold-2);text-decoration:none;border-bottom:1px solid var(--gold-dim);font-size:11px;}
@@ -675,7 +682,17 @@
       <div class="card">
         <div class="card-head"><div><div class="card-title">Tabela por <em style="font-style:italic;color:var(--gold-2)">criativo</em></div><div style="font-size:11px;color:var(--gray-2);margin-top:4px">Cruza Ad Name, investimento e link do marketing com Lead, MQL, MQL+ e Fechou Consultoria do CRM</div></div><div class="card-sub">Atribuição</div></div>
         <div class="creative-table-wrap">
-          <div class="creative-row head"><span>Criativo</span><span>Campanha</span><span style="text-align:right">Invest.</span><span style="text-align:right">Leads</span><span style="text-align:right">Tx. conv.</span><span style="text-align:right">MQL</span><span style="text-align:right">MQL+</span><span style="text-align:right">Vendas</span><span>Link</span></div>
+          <div class="creative-row head" id="creativeHeader">
+            <span class="sort-head" data-creative-sort="name" role="button" tabindex="0" title="Ordenar por criativo">Criativo</span>
+            <span class="sort-head" data-creative-sort="campaigns" role="button" tabindex="0" title="Ordenar por campanha">Campanha</span>
+            <span class="sort-head num" data-creative-sort="invest" role="button" tabindex="0" title="Ordenar por investimento">Invest.</span>
+            <span class="sort-head num" data-creative-sort="leads" role="button" tabindex="0" title="Ordenar por leads">Leads</span>
+            <span class="sort-head num" data-creative-sort="txconv" role="button" tabindex="0" title="Ordenar por taxa de conversão">Tx. conv.</span>
+            <span class="sort-head num" data-creative-sort="mql" role="button" tabindex="0" title="Ordenar por MQL">MQL</span>
+            <span class="sort-head num" data-creative-sort="mqlp" role="button" tabindex="0" title="Ordenar por MQL+">MQL+</span>
+            <span class="sort-head num" data-creative-sort="vendas" role="button" tabindex="0" title="Ordenar por vendas">Vendas</span>
+            <span class="sort-head" data-creative-sort="link" role="button" tabindex="0" title="Ordenar por link">Link</span>
+          </div>
           <div id="creativeTable"></div>
         </div>
         <div class="creative-note" id="creativeNote">—</div>
@@ -1061,7 +1078,8 @@ let DATE_MIN_ABS, DATE_MAX_ABS, DATE_MIN_DEFAULT, DATE_MAX_DEFAULT;
 const state = {
   from: null,
   to:   null,
-  camps: []  // empty = all
+  camps: [],  // empty = all
+  creativeSort: { key: 'invest', dir: 'desc' } // tabela de criativos: clique no cabeçalho alterna asc/desc
 };
 
 function recomputeDateBounds(resetState){
@@ -1294,6 +1312,59 @@ function creativeLinkLabel(raw){
   return 'Abrir link';
 }
 
+function creativeSortValue(row, key){
+  if(!row) return '';
+  if(['invest','leads','txconv','mql','mqlp','vendas'].includes(key)) return Number(row[key] || 0);
+  if(key === 'link') return cleanText(row.link || creativeLinkLabel(row.link)).toLowerCase();
+  if(key === 'campaigns') return cleanText(row.campaigns || '').toLowerCase();
+  return cleanText(row.name || '').toLowerCase();
+}
+
+function sortCreativeRows(rows){
+  const sort = state.creativeSort || {key:'invest', dir:'desc'};
+  const key = sort.key || 'invest';
+  const dir = sort.dir === 'asc' ? 1 : -1;
+  const numeric = ['invest','leads','txconv','mql','mqlp','vendas'].includes(key);
+  return (rows || []).slice().sort((a,b)=>{
+    const va = creativeSortValue(a, key);
+    const vb = creativeSortValue(b, key);
+    let cmp = numeric ? (va - vb) : String(va).localeCompare(String(vb), 'pt-BR', {numeric:true, sensitivity:'base'});
+    if(cmp === 0){
+      // desempate estável e útil: maior investimento, depois mais vendas, depois nome
+      cmp = (Number(a.invest||0) - Number(b.invest||0)) || (Number(a.vendas||0) - Number(b.vendas||0)) || cleanText(a.name||'').localeCompare(cleanText(b.name||''), 'pt-BR', {numeric:true, sensitivity:'base'});
+    }
+    return cmp * dir;
+  });
+}
+
+function updateCreativeSortHeader(){
+  const sort = state.creativeSort || {key:'invest', dir:'desc'};
+  document.querySelectorAll('[data-creative-sort]').forEach(el=>{
+    const active = el.dataset.creativeSort === sort.key;
+    el.classList.toggle('active', active);
+    el.classList.toggle('asc', active && sort.dir === 'asc');
+    el.classList.toggle('desc', active && sort.dir !== 'asc');
+    el.setAttribute('aria-sort', active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none');
+  });
+}
+
+function initCreativeSort(){
+  document.querySelectorAll('[data-creative-sort]').forEach(el=>{
+    const applySort = () => {
+      const key = el.dataset.creativeSort;
+      const current = state.creativeSort || {};
+      const sameKey = current.key === key;
+      state.creativeSort = { key, dir: sameKey && current.dir === 'desc' ? 'asc' : 'desc' };
+      render();
+    };
+    el.addEventListener('click', applySort);
+    el.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); applySort(); }
+    });
+  });
+  updateCreativeSortHeader();
+}
+
 function render(){
   const M = compute();
   const {lead,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource} = M;
@@ -1429,17 +1500,19 @@ function render(){
   // Criativos
   const creativeTable = document.getElementById('creativeTable');
   const creativeNote = document.getElementById('creativeNote');
+  const creativeSorted = sortCreativeRows(creativeRanked);
+  updateCreativeSortHeader();
   creativeTable.innerHTML = '';
   if(!hasCreativeSource){
     creativeTable.innerHTML = '<div class="empty-state">A fonte carregada não trouxe Ad Name/link do marketing nem criativo do CRM. Por isso a tabela por criativo não pode ser calculada ainda.</div>';
     creativeNote.textContent = 'Diagnóstico: o dashboard está usando dados locais/embutidos antigos ou a publicação CSV não trouxe as colunas esperadas. Verifique se o status está "Ao vivo" e se o console mostra ad name/link no MARKETING e criativo no CRM.';
-  } else if(!creativeRanked || creativeRanked.length===0){
+  } else if(!creativeSorted || creativeSorted.length===0){
     creativeTable.innerHTML = '<div class="empty-state">Sem criativos no período selecionado</div>';
     creativeNote.textContent = 'A tabela depende da coluna "Ad Name" no marketing e da coluna "criativo" no CRM; vendas vêm de "Fechou Consultoria" no CRM.';
   } else {
     let linked = 0, onlyCRM = 0, onlyMK = 0;
     const totals = {invest:0, leads:0, mql:0, mqlp:0, vendas:0};
-    for(const c of creativeRanked){
+    for(const c of creativeSorted){
       const href = creativeHref(c.link);
       if(href) linked += 1;
       if(c.crmRows && !c.mkRows) onlyCRM += 1;
@@ -1472,7 +1545,7 @@ function render(){
     trow.className = 'creative-row total';
     trow.innerHTML = `
       <span class="creative-name">Total</span>
-      <span class="creative-camp">${fmt(creativeRanked.length)} criativos</span>
+      <span class="creative-camp">${fmt(creativeSorted.length)} criativos</span>
       <span class="creative-num gold">R$ ${fmtMoneyInt(totals.invest)}</span>
       <span class="creative-num">${fmt(totals.leads)}</span>
       <span class="creative-num">${fmtPct(totalTx)}</span>
@@ -1482,7 +1555,7 @@ function render(){
       <span class="creative-link"><span class="muted">—</span></span>
     `;
     creativeTable.appendChild(trow);
-    creativeNote.textContent = `${fmt(creativeRanked.length)} criativos no período · ${fmt(linked)} com link/permalink · ${fmt(onlyMK)} só no marketing · ${fmt(onlyCRM)} só no CRM · Cruzamento = Marketing Ad Name ⇄ CRM criativo · Tx. conversão = Fechou Consultoria ÷ Leads.`;
+    creativeNote.textContent = `${fmt(creativeSorted.length)} criativos no período · ${fmt(linked)} com link/permalink · ${fmt(onlyMK)} só no marketing · ${fmt(onlyCRM)} só no CRM · Cruzamento = Marketing Ad Name ⇄ CRM criativo · Tx. conversão = Fechou Consultoria ÷ Leads.`;
   }
 
   // Source
@@ -1834,6 +1907,7 @@ function initNav(){
 // ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async function(){
   initNav();
+  initCreativeSort();
 
   // ── Auto-fetch via CSV publicado ao abrir ──────────────────
   const hasLiveURLs = LIVE_URLS.crm && LIVE_URLS.marketing;
