@@ -933,19 +933,36 @@ function crmMatchesCamps(crmRoot, selectedCamps){
 // ═══════════════════════════════════════════════
 
 
-const crmDates = DATA.crm.map(r=>r[0]).sort();
-const mkDates  = DATA.mk.map(r=>r[0]).sort();
-const DATE_MIN_ABS = crmDates[0] < mkDates[0] ? crmDates[0] : mkDates[0];
-const DATE_MAX_ABS = crmDates[crmDates.length-1] > mkDates[mkDates.length-1] ? crmDates[crmDates.length-1] : mkDates[mkDates.length-1];
-// Default range: marketing period (when costs exist) — avoids inflating leads vs invest
-const DATE_MIN_DEFAULT = mkDates[0];
-const DATE_MAX_DEFAULT = DATE_MAX_ABS;
+// Limites de data — recalculáveis, pois o DATA é substituído pelo fetch ao vivo.
+// Se fossem const (fixados no DATA embutido), o período exibido ficaria congelado
+// na última data do arquivo e cortaria os dados novos que chegam da planilha.
+let DATE_MIN_ABS, DATE_MAX_ABS, DATE_MIN_DEFAULT, DATE_MAX_DEFAULT;
 
 const state = {
-  from: DATE_MIN_DEFAULT,
-  to:   DATE_MAX_DEFAULT,
+  from: null,
+  to:   null,
   camps: []  // empty = all
 };
+
+function recomputeDateBounds(resetState){
+  const crmDates = DATA.crm.map(r=>r[0]).sort();
+  const mkDates  = DATA.mk.map(r=>r[0]).sort();
+  const prevMax = DATE_MAX_ABS;
+  DATE_MIN_ABS = crmDates[0] < mkDates[0] ? crmDates[0] : mkDates[0];
+  DATE_MAX_ABS = crmDates[crmDates.length-1] > mkDates[mkDates.length-1] ? crmDates[crmDates.length-1] : mkDates[mkDates.length-1];
+  // Default range: marketing period (when costs exist) — avoids inflating leads vs invest
+  DATE_MIN_DEFAULT = mkDates[0];
+  DATE_MAX_DEFAULT = DATE_MAX_ABS;
+  if(resetState){
+    state.from = DATE_MIN_DEFAULT;
+    state.to   = DATE_MAX_ABS;
+  } else if(state.to === prevMax){
+    // usuário estava acompanhando a última data — continua acompanhando
+    state.to = DATE_MAX_ABS;
+  }
+}
+
+recomputeDateBounds(true);  // inicial, a partir do DATA embutido
 
 // ═══════════════════════════════════════════════
 //   COMPUTE METRICS
@@ -1536,7 +1553,6 @@ function initNav(){
 //   BOOT
 // ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async function(){
-  initFilters();
   initNav();
 
   // ── Auto-fetch via CSV publicado ao abrir ──────────────────
@@ -1552,6 +1568,7 @@ document.addEventListener('DOMContentLoaded', async function(){
       const fresh = await fetchLiveData();
       if(fresh && fresh.crm && fresh.mk){
         DATA = fresh;
+        recomputeDateBounds(true);   // estende o período até a data mais recente da planilha
         statusEl.classList.remove('loading');
         statusText.textContent = 'Ao vivo · ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
         // Update footer date
@@ -1569,6 +1586,7 @@ document.addEventListener('DOMContentLoaded', async function(){
     }
   }
 
+  initFilters();   // agora lê os limites de data e a lista de campanhas já atualizados
   render();
 
   // ── Auto-refresh a cada 30 min se a página ficar aberta ──
@@ -1576,7 +1594,11 @@ document.addEventListener('DOMContentLoaded', async function(){
     setInterval(async ()=>{
       try{
         const fresh = await fetchLiveData();
-        if(fresh && fresh.crm){ DATA = fresh; render(); }
+        if(fresh && fresh.crm && fresh.mk){
+          DATA = fresh;
+          recomputeDateBounds(false);   // acompanha novas datas sem descartar a seleção do usuário
+          render();
+        }
       } catch(e){ console.warn('Refresh periódico falhou:', e.message); }
     }, 30 * 60 * 1000);
   }
