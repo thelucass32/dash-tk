@@ -580,7 +580,7 @@
       <div class="kpi"><div class="kpi-label">Leads</div><div class="kpi-val" id="kpiLeads">—</div><div class="kpi-sub">CPL <span class="delta" id="kpiCPL">—</span></div><div class="kpi-comp" id="compLeads"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
       <div class="kpi"><div class="kpi-label">MQL</div><div class="kpi-val" id="kpiMQL">—</div><div class="kpi-sub">Tx. <span class="delta" id="kpiMQLrate">—</span> · CPMQL <span id="kpiCPMQL">—</span></div><div class="kpi-comp" id="compMQL"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
       <div class="kpi"><div class="kpi-label">MQL+</div><div class="kpi-val" id="kpiMQLp">—</div><div class="kpi-sub">Tx. <span class="delta" id="kpiMQLprate">—</span> · CPMQL+ <span id="kpiCPMQLp">—</span></div><div class="kpi-comp" id="compMQLp"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
-      <div class="kpi"><div class="kpi-label">Vendas</div><div class="kpi-val" id="kpiVendas">—</div><div class="kpi-sub">CAC <span class="delta up" id="kpiCAC">—</span></div><div class="kpi-comp" id="compVendas"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
+      <div class="kpi"><div class="kpi-label">Vendas únicas</div><div class="kpi-val" id="kpiVendas">—</div><div class="kpi-sub">CAC <span class="delta up" id="kpiCAC">—</span></div><div class="kpi-comp" id="compVendas"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
     </div>
 
     <!-- FUNIL -->
@@ -617,7 +617,7 @@
             <path d="M340 305L340 320" stroke="#C6A46C" stroke-width="1"/><polygon points="336,318 344,318 340,324" fill="#C6A46C"/>
             <g filter="url(#gGlow)">
               <polygon points="220,330 460,330 420,420 260,420" fill="url(#gV)" stroke="#F5F5F3" stroke-width="0.8" stroke-opacity="0.4"/>
-              <text x="340" y="360" text-anchor="middle" font-family="Manrope" font-size="9.5" letter-spacing="3" fill="#0B0B0B" font-weight="700">VENDAS · CONTRATO</text>
+              <text x="340" y="360" text-anchor="middle" font-family="Manrope" font-size="9.5" letter-spacing="3" fill="#0B0B0B" font-weight="700">VENDAS ÚNICAS · CONTRATO</text>
               <text x="340" y="398" text-anchor="middle" font-family="Fraunces" font-size="36" font-weight="500" fill="#0B0B0B" id="fVendas">—</text>
             </g>
             <line x1="220" y1="443" x2="460" y2="443" stroke="#C6A46C" stroke-width="0.5"/>
@@ -840,6 +840,12 @@ function normHeader(s){
 function normCreativeKey(s){
   return normKey(s).replace(/^criativo[:\s-]*/,'').replace(/[\s_]+/g,' ').trim();
 }
+function normEmail(s){
+  const raw = cleanText(s).toLowerCase();
+  if(!raw) return '';
+  const match = raw.match(/[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+/i);
+  return match ? match[0].toLowerCase() : '';
+}
 function pickHeader(headers, patterns){
   const exact = headers.findIndex(h => patterns.some(re => re.exact && h === re.value));
   if(exact >= 0) return exact;
@@ -916,12 +922,18 @@ async function fetchLiveData(){
     {value:/^creative$/},
     {value:/criativo|an[uú]ncio|ad.?name|creative/}
   ]);
+  const iEmail = pickHeader(h, [
+    {exact:true, value:'email'},
+    {exact:true, value:'e-mail'},
+    {exact:true, value:'email address'},
+    {value:/^(buyer|lead|cliente|contato).*email$|^email.*(buyer|lead|cliente|contato)$|e-?mail/}
+  ]);
 
   console.log('[DEBUG] CRM: linhas =', crmRows.length, '| cabeçalho =', h);
-  console.log('[DEBUG] CRM colunas detectadas → data:', iDate, 'utm:', iUtm, 'patrim:', iPatr, 'lead:', iLead, 'mql:', iMQL, 'mql+:', iMQLp, 'status:', iStatus, 'fechou:', iFech, 'criativo:', iCriativo);
+  console.log('[DEBUG] CRM colunas detectadas → data:', iDate, 'utm:', iUtm, 'patrim:', iPatr, 'lead:', iLead, 'mql:', iMQL, 'mql+:', iMQLp, 'status:', iStatus, 'fechou:', iFech, 'criativo:', iCriativo, 'email:', iEmail);
   if(iDate < 0) console.error('[DEBUG] ⚠ Coluna de DATA não encontrada no CRM — nenhuma linha será usada!');
 
-  let crmMin=null, crmMax=null, crmSkipped=0;
+  let crmMin=null, crmMax=null, crmSkipped=0, saleRowsWithoutEmail=0;
   const agg = {};
   for(let i=1; i<crmRows.length; i++){
     const r = crmRows[i];
@@ -933,19 +945,26 @@ async function fetchLiveData(){
     const patr  = normPatr(r[iPatr]);
     const criativo = iCriativo >= 0 ? cleanText(r[iCriativo]) : '';
     const key = d+'|'+croot+'|'+patr+'|'+normCreativeKey(criativo);
-    if(!agg[key]) agg[key] = {l:0,m:0,mp:0,v:0,criativo:criativo};
+    if(!agg[key]) agg[key] = {l:0,m:0,mp:0,criativo:criativo,saleEmails:new Set()};
     if(parseInt(r[iLead])>0) agg[key].l += 1;
     if(parseInt(r[iMQL])>0)  agg[key].m += 1;
     if(parseInt(r[iMQLp])>0) agg[key].mp += 1;
     const fechouConsultoria = iFech >= 0 ? r[iFech] : '';
     const statusCRM = iStatus >= 0 ? r[iStatus] : '';
-    if(isPositiveSaleFlag(fechouConsultoria) || /fechad|closed|won|ganho/.test(normKey(statusCRM))) agg[key].v += 1;
+    const isSale = isPositiveSaleFlag(fechouConsultoria) || /fechad|closed|won|ganho/.test(normKey(statusCRM));
+    if(isSale){
+      const email = iEmail >= 0 ? normEmail(r[iEmail]) : '';
+      if(email) agg[key].saleEmails.add(email);
+      else saleRowsWithoutEmail += 1;
+    }
   }
   const newCrm = Object.entries(agg).map(([k,v]) => {
     const [d,c,p] = k.split('|');
-    return [d, c, parseInt(p), v.l, v.m, v.mp, v.v, v.criativo || ''];
+    const saleEmails = Array.from(v.saleEmails);
+    return [d, c, parseInt(p), v.l, v.m, v.mp, saleEmails.length, v.criativo || '', saleEmails];
   });
-  console.log('[DEBUG] CRM: intervalo de datas', crmMin, '→', crmMax, '| linhas ignoradas (data inválida):', crmSkipped);
+  console.log('[DEBUG] CRM: intervalo de datas', crmMin, '→', crmMax, '| linhas ignoradas (data inválida):', crmSkipped, '| vendas sem e-mail ignoradas:', saleRowsWithoutEmail);
+  if(iEmail < 0) console.error('[DEBUG] ⚠ Coluna de E-MAIL não encontrada no CRM — não é possível deduplicar vendas por e-mail.');
 
   const mkRows = parseCSV(mkCSV);
   const hm = mkRows[0].map(normHeader);
@@ -1105,15 +1124,31 @@ recomputeDateBounds(true);  // inicial, a partir do DATA embutido
 // ═══════════════════════════════════════════════
 //   COMPUTE METRICS
 // ═══════════════════════════════════════════════
+function crmHasSaleEmailData(rows){
+  return rows.some(r => Array.isArray(r[8]));
+}
+function uniqueSaleEmails(rows){
+  const emails = new Set();
+  for(const r of rows){
+    if(!Array.isArray(r[8])) continue;
+    for(const email of r[8]){
+      const normalized = normEmail(email);
+      if(normalized) emails.add(normalized);
+    }
+  }
+  return emails;
+}
 function compute(){
   const {from, to, camps} = state;
   // Filter
   const crm = DATA.crm.filter(r => r[0]>=from && r[0]<=to && crmMatchesCamps(r[1], camps));
   const mk  = DATA.mk.filter(r => r[0]>=from && r[0]<=to && (camps.length===0 || camps.includes(r[1])));
 
-  // Funnel totals
-  let lead=0, mql=0, mqlp=0, vendas=0;
-  for(const r of crm){ lead+=r[3]; mql+=r[4]; mqlp+=r[5]; vendas+=r[6]; }
+  // Funnel totals. Vendas = quantidade de e-mails únicos com contrato fechado.
+  let lead=0, mql=0, mqlp=0, legacyVendas=0;
+  for(const r of crm){ lead+=r[3]; mql+=r[4]; mqlp+=r[5]; legacyVendas+=r[6]; }
+  const saleEmailDataAvailable = crmHasSaleEmailData(DATA.crm);
+  const vendas = saleEmailDataAvailable ? uniqueSaleEmails(crm).size : legacyVendas;
 
   let invest=0;
   for(const r of mk){ invest += r[2]; }
@@ -1122,14 +1157,18 @@ function compute(){
   const patr = [0,0,0,0,0];
   for(const r of crm){ if(r[3]>0) patr[r[2]] += r[3]; }
 
-  // Source
+  // Source. As vendas também são únicas por e-mail dentro de cada origem.
   const srcMap = {};
   for(const r of crm){
     const s = classifySource(r[1]);
-    if(!srcMap[s]) srcMap[s] = {lead:0,mqlp:0,vendas:0};
+    if(!srcMap[s]) srcMap[s] = {lead:0,mqlp:0,vendas:0,saleEmails:new Set()};
     srcMap[s].lead += r[3];
     srcMap[s].mqlp += r[5];
     srcMap[s].vendas += r[6];
+    if(Array.isArray(r[8])) for(const email of r[8]) if(normEmail(email)) srcMap[s].saleEmails.add(normEmail(email));
+  }
+  if(saleEmailDataAvailable){
+    for(const v of Object.values(srcMap)) v.vendas = v.saleEmails.size;
   }
 
   // Campaigns by investment
@@ -1159,6 +1198,7 @@ function compute(){
         mql: 0,
         mqlp: 0,
         vendas: 0,
+        saleEmails: new Set(),
         link: '',
         mkRows: 0,
         crmRows: 0
@@ -1187,15 +1227,18 @@ function compute(){
     e.mql    += numValue(r[4]);
     e.mqlp   += numValue(r[5]);
     e.vendas += numValue(r[6]);
+    if(Array.isArray(r[8])) for(const email of r[8]) if(normEmail(email)) e.saleEmails.add(normEmail(email));
     e.crmRows += 1;
     if(r[1]) e.campaigns.add(r[1]);
   }
 
   const creativeRanked = Object.values(creativeMap)
     .map(v => {
-      const txconv = v.leads ? v.vendas / v.leads : 0;
+      const creativeVendas = saleEmailDataAvailable ? v.saleEmails.size : v.vendas;
+      const txconv = v.leads ? creativeVendas / v.leads : 0;
       return {
         ...v,
+        vendas: creativeVendas,
         conv: v.leads, // compatibilidade visual: coluna agora é Leads do CRM
         txconv,
         campaigns: Array.from(v.campaigns).filter(Boolean).slice(0,3).join(' · ')
@@ -1209,19 +1252,27 @@ function compute(){
   // Nesse caso, não renderizamos a linha agregada "Sem criativo informado" como se fosse resultado real.
   const hasCreativeSource = DATA.mk.some(r => cleanText(r[3])) || DATA.crm.some(r => cleanText(r[7]));
 
-  // Monthly
+  // Monthly. Cada mês conta uma vez cada e-mail comprador.
   const monthly = {};
   for(const r of crm){
     const m = r[0].slice(0,7);
-    if(!monthly[m]) monthly[m] = {lead:0,mql:0,mqlp:0,vendas:0,invest:0};
+    if(!monthly[m]) monthly[m] = {lead:0,mql:0,mqlp:0,vendas:0,invest:0,saleEmails:new Set()};
     monthly[m].lead+=r[3]; monthly[m].mql+=r[4]; monthly[m].mqlp+=r[5]; monthly[m].vendas+=r[6];
+    if(Array.isArray(r[8])) for(const email of r[8]) if(normEmail(email)) monthly[m].saleEmails.add(normEmail(email));
   }
   for(const r of mk){
     const m = r[0].slice(0,7);
-    if(!monthly[m]) monthly[m] = {lead:0,mql:0,mqlp:0,vendas:0,invest:0};
+    if(!monthly[m]) monthly[m] = {lead:0,mql:0,mqlp:0,vendas:0,invest:0,saleEmails:new Set()};
     monthly[m].invest += r[2];
   }
-  const monthlyArr = Object.entries(monthly).sort().map(([m,v])=>({month:m,...v}));
+  const monthlyArr = Object.entries(monthly).sort().map(([m,v])=>({
+    month:m,
+    lead:v.lead,
+    mql:v.mql,
+    mqlp:v.mqlp,
+    vendas:saleEmailDataAvailable ? v.saleEmails.size : v.vendas,
+    invest:v.invest
+  }));
 
   return {lead,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource,
           totalCRM:crm.length, totalMK:mk.length};
@@ -1241,8 +1292,9 @@ function computePrev(){
   const crm = DATA.crm.filter(r => r[0]>=prevFrom && r[0]<=prevTo && crmMatchesCamps(r[1], camps));
   const mk  = DATA.mk.filter(r  => r[0]>=prevFrom && r[0]<=prevTo && (camps.length===0 || camps.includes(r[1])));
 
-  let lead=0, mql=0, mqlp=0, vendas=0, invest=0;
-  for(const r of crm){ lead+=r[3]; mql+=r[4]; mqlp+=r[5]; vendas+=r[6]; }
+  let lead=0, mql=0, mqlp=0, legacyVendas=0, invest=0;
+  for(const r of crm){ lead+=r[3]; mql+=r[4]; mqlp+=r[5]; legacyVendas+=r[6]; }
+  const vendas = crmHasSaleEmailData(DATA.crm) ? uniqueSaleEmails(crm).size : legacyVendas;
   for(const r of mk)  invest += r[2];
 
   return {lead, mql, mqlp, vendas, invest, prevFrom, prevTo, duration};
@@ -1508,7 +1560,7 @@ function render(){
     creativeNote.textContent = 'Diagnóstico: o dashboard está usando dados locais/embutidos antigos ou a publicação CSV não trouxe as colunas esperadas. Verifique se o status está "Ao vivo" e se o console mostra ad name/link no MARKETING e criativo no CRM.';
   } else if(!creativeSorted || creativeSorted.length===0){
     creativeTable.innerHTML = '<div class="empty-state">Sem criativos no período selecionado</div>';
-    creativeNote.textContent = 'A tabela depende da coluna "Ad Name" no marketing e da coluna "criativo" no CRM; vendas vêm de "Fechou Consultoria" no CRM.';
+    creativeNote.textContent = 'A tabela depende da coluna "Ad Name" no marketing e da coluna "criativo" no CRM; vendas vêm de "Fechou Consultoria" e são deduplicadas pelo e-mail do CRM.';
   } else {
     let linked = 0, onlyCRM = 0, onlyMK = 0;
     const totals = {invest:0, leads:0, mql:0, mqlp:0, vendas:0};
@@ -1555,7 +1607,7 @@ function render(){
       <span class="creative-link"><span class="muted">—</span></span>
     `;
     creativeTable.appendChild(trow);
-    creativeNote.textContent = `${fmt(creativeSorted.length)} criativos no período · ${fmt(linked)} com link/permalink · ${fmt(onlyMK)} só no marketing · ${fmt(onlyCRM)} só no CRM · Cruzamento = Marketing Ad Name ⇄ CRM criativo · Tx. conversão = Fechou Consultoria ÷ Leads.`;
+    creativeNote.textContent = `${fmt(creativeSorted.length)} criativos no período · ${fmt(linked)} com link/permalink · ${fmt(onlyMK)} só no marketing · ${fmt(onlyCRM)} só no CRM · Cruzamento = Marketing Ad Name ⇄ CRM criativo · Vendas = e-mails únicos com Fechou Consultoria · Tx. conversão = vendas únicas ÷ Leads.`;
   }
 
   // Source
