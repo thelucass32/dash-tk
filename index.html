@@ -105,14 +105,15 @@
   }
   .period-dropdown.open,.multi-dropdown.open{display:block;}
 
-  .period-opt{
+  .period-opt,.lead-type-opt{
     display:flex;align-items:center;gap:10px;padding:11px 16px;
     cursor:pointer;font-size:12.5px;transition:background .15s;
     border-bottom:1px solid var(--line);
   }
-  .period-opt:last-of-type{border-bottom:none;}
-  .period-opt:hover{background:var(--bg-3);color:var(--gold-2);}
-  .period-opt.active{color:var(--gold-2);background:linear-gradient(90deg,var(--gold-glow),transparent);}
+  .period-opt:last-of-type,.lead-type-opt:last-child{border-bottom:none;}
+  .period-opt:hover,.lead-type-opt:hover{background:var(--bg-3);color:var(--gold-2);}
+  .period-opt.active,.lead-type-opt.active{color:var(--gold-2);background:linear-gradient(90deg,var(--gold-glow),transparent);}
+  #leadTypeDropdown{min-width:220px;}
   .period-range{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--gray-2);}
   .period-custom{padding:12px 16px;border-top:1px solid var(--line-2);}
   .period-custom-label{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px;}
@@ -563,6 +564,17 @@
           </div>
         </div>
       </div>
+      <div class="filter-group">
+        <div class="filter-label">Tipo de lead</div>
+        <div class="period-wrap">
+          <button class="period-btn" id="leadTypeBtn"><span id="leadTypeBtnLabel">Todos os leads</span><span class="caret">▼</span></button>
+          <div class="period-dropdown" id="leadTypeDropdown">
+            <div class="lead-type-opt active" data-lead-type="all">Todos os leads</div>
+            <div class="lead-type-opt" data-lead-type="paid">Pago</div>
+            <div class="lead-type-opt" data-lead-type="organic">Orgânico</div>
+          </div>
+        </div>
+      </div>
       <div class="filter-spacer"></div>
       <div class="refresh-status" id="refreshStatus"><span class="pulse"></span><span id="refreshStatusText">Carregado</span></div>
       <div class="filter-actions-row">
@@ -579,8 +591,8 @@
     <div class="kpi-row">
       <div class="kpi"><div class="kpi-label">Investimento</div><div class="kpi-val"><span class="currency">R$</span><span id="kpiInvest">—</span></div><div class="kpi-sub" id="kpiInvestSub">Mídia paga</div><div class="kpi-comp" id="compInvest"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
       <div class="kpi"><div class="kpi-label">Leads</div><div class="kpi-val" id="kpiLeads">—</div><div class="kpi-sub">Pagos <span class="delta" id="kpiLeadsPagos">—</span> · Orgânicos <span id="kpiLeadsOrganicos">—</span></div><div class="kpi-comp" id="compLeads"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
-      <div class="kpi"><div class="kpi-label">CPL Geral</div><div class="kpi-val"><span class="currency">R$</span><span id="kpiCPLGeral">—</span></div><div class="kpi-sub">Investimento ÷ todos os leads</div><div class="kpi-comp" id="compCPLGeral"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
-      <div class="kpi"><div class="kpi-label">CPL Pago</div><div class="kpi-val"><span class="currency">R$</span><span id="kpiCPLPago">—</span></div><div class="kpi-sub">Fase igfb/ggs ou yt + medium resp</div><div class="kpi-comp" id="compCPLPago"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
+      <div class="kpi"><div class="kpi-label">CPL Geral</div><div class="kpi-val"><span class="currency">R$</span><span id="kpiCPLGeral">—</span></div><div class="kpi-sub" id="kpiCPLGeralSub">Investimento ÷ todos os leads</div><div class="kpi-comp" id="compCPLGeral"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
+      <div class="kpi"><div class="kpi-label">CPL Pago</div><div class="kpi-val"><span class="currency">R$</span><span id="kpiCPLPago">—</span></div><div class="kpi-sub" id="kpiCPLPagoSub">Fase igfb/ggs ou yt + medium resp</div><div class="kpi-comp" id="compCPLPago"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
       <div class="kpi"><div class="kpi-label">MQL</div><div class="kpi-val" id="kpiMQL">—</div><div class="kpi-sub">Tx. <span class="delta" id="kpiMQLrate">—</span> · CPMQL <span id="kpiCPMQL">—</span></div><div class="kpi-comp" id="compMQL"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
       <div class="kpi"><div class="kpi-label">MQL+</div><div class="kpi-val" id="kpiMQLp">—</div><div class="kpi-sub">Tx. <span class="delta" id="kpiMQLprate">—</span> · CPMQL+ <span id="kpiCPMQLp">—</span></div><div class="kpi-comp" id="compMQLp"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
       <div class="kpi"><div class="kpi-label">Vendas únicas</div><div class="kpi-val" id="kpiVendas">—</div><div class="kpi-sub">CAC <span class="delta up" id="kpiCAC">—</span></div><div class="kpi-comp" id="compVendas"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
@@ -977,27 +989,38 @@ async function fetchLiveData(){
     const patr  = normPatr(r[iPatr]);
     const criativo = iCriativo >= 0 ? cleanText(r[iCriativo]) : '';
     const key = d+'|'+croot+'|'+patr+'|'+normCreativeKey(criativo);
-    if(!agg[key]) agg[key] = {l:0,lp:0,m:0,mp:0,criativo:criativo,saleEmails:new Set()};
+    if(!agg[key]) agg[key] = {l:0,lp:0,m:0,pm:0,mp:0,pmp:0,criativo:criativo,saleEmails:new Set(),paidSaleEmails:new Set(),organicSaleEmails:new Set()};
+    const paidType = iFase >= 0 && isPaidCrmLead(r[iFase], iMedium >= 0 ? r[iMedium] : '');
     const isLead = parseInt(r[iLead]) > 0;
     if(isLead){
       agg[key].l += 1;
-      if(iFase >= 0 && isPaidCrmLead(r[iFase], iMedium >= 0 ? r[iMedium] : '')) agg[key].lp += 1;
+      if(paidType) agg[key].lp += 1;
     }
-    if(parseInt(r[iMQL])>0)  agg[key].m += 1;
-    if(parseInt(r[iMQLp])>0) agg[key].mp += 1;
+    if(parseInt(r[iMQL])>0){
+      agg[key].m += 1;
+      if(paidType) agg[key].pm += 1;
+    }
+    if(parseInt(r[iMQLp])>0){
+      agg[key].mp += 1;
+      if(paidType) agg[key].pmp += 1;
+    }
     const fechouConsultoria = iFech >= 0 ? r[iFech] : '';
     const statusCRM = iStatus >= 0 ? r[iStatus] : '';
     const isSale = isPositiveSaleFlag(fechouConsultoria) || /fechad|closed|won|ganho/.test(normKey(statusCRM));
     if(isSale){
       const email = iEmail >= 0 ? normEmail(r[iEmail]) : '';
-      if(email) agg[key].saleEmails.add(email);
-      else saleRowsWithoutEmail += 1;
+      if(email){
+        agg[key].saleEmails.add(email);
+        (paidType ? agg[key].paidSaleEmails : agg[key].organicSaleEmails).add(email);
+      } else saleRowsWithoutEmail += 1;
     }
   }
   const newCrm = Object.entries(agg).map(([k,v]) => {
     const [d,c,p] = k.split('|');
     const saleEmails = Array.from(v.saleEmails);
-    return [d, c, parseInt(p), v.l, v.m, v.mp, saleEmails.length, v.criativo || '', saleEmails, v.lp];
+    const paidSaleEmails = Array.from(v.paidSaleEmails);
+    const organicSaleEmails = Array.from(v.organicSaleEmails);
+    return [d, c, parseInt(p), v.l, v.m, v.mp, saleEmails.length, v.criativo || '', saleEmails, v.lp, v.pm, v.pmp, paidSaleEmails, organicSaleEmails];
   });
   console.log('[DEBUG] CRM: intervalo de datas', crmMin, '→', crmMax, '| linhas ignoradas (data inválida):', crmSkipped, '| vendas sem e-mail ignoradas:', saleRowsWithoutEmail);
   if(iEmail < 0) console.error('[DEBUG] ⚠ Coluna de E-MAIL não encontrada no CRM — não é possível deduplicar vendas por e-mail.');
@@ -1078,7 +1101,8 @@ async function fetchLiveData(){
     crm: newCrm,
     mk: newMk,
     camps: Array.from(campSet).sort(),
-    patr_labels: DATA.patr_labels
+    patr_labels: DATA.patr_labels,
+    leadTypeAvailable: iFase >= 0
   };
 }
 
@@ -1136,6 +1160,7 @@ const state = {
   from: null,
   to:   null,
   camps: [],  // empty = all
+  leadType: 'all', // all | paid | organic
   creativeSort: { key: 'invest', dir: 'desc' } // tabela de criativos: clique no cabeçalho alterna asc/desc
 };
 
@@ -1162,73 +1187,93 @@ recomputeDateBounds(true);  // inicial, a partir do DATA embutido
 // ═══════════════════════════════════════════════
 //   COMPUTE METRICS
 // ═══════════════════════════════════════════════
-function crmHasSaleEmailData(rows){
-  return rows.some(r => Array.isArray(r[8]));
+function leadTypeDataAvailable(){
+  return DATA.leadTypeAvailable === true || DATA.crm.some(r => r.length > 13);
 }
-function uniqueSaleEmails(rows){
+function crmMetricByLeadType(r, allIndex, paidIndex, leadType){
+  const allValue = numValue(r[allIndex]);
+  if(leadType === 'all') return allValue;
+  if(!leadTypeDataAvailable()) return 0;
+  const paidValue = numValue(r[paidIndex]);
+  return leadType === 'paid' ? paidValue : Math.max(0, allValue - paidValue);
+}
+function saleEmailsByLeadType(r, leadType){
+  const index = leadType === 'paid' ? 12 : (leadType === 'organic' ? 13 : 8);
+  return Array.isArray(r[index]) ? r[index] : [];
+}
+function crmHasSaleEmailData(rows, leadType='all'){
+  const index = leadType === 'paid' ? 12 : (leadType === 'organic' ? 13 : 8);
+  return rows.some(r => Array.isArray(r[index]));
+}
+function uniqueSaleEmails(rows, leadType='all'){
   const emails = new Set();
   for(const r of rows){
-    if(!Array.isArray(r[8])) continue;
-    for(const email of r[8]){
+    for(const email of saleEmailsByLeadType(r, leadType)){
       const normalized = normEmail(email);
       if(normalized) emails.add(normalized);
     }
   }
   return emails;
 }
+function leadTypeLabel(type){
+  return type === 'paid' ? 'Pago' : (type === 'organic' ? 'Orgânico' : 'Todos os leads');
+}
 function compute(){
   const {from, to, camps} = state;
-  // Filter
+  const leadType = state.leadType || 'all';
   const crm = DATA.crm.filter(r => r[0]>=from && r[0]<=to && crmMatchesCamps(r[1], camps));
-  const mk  = DATA.mk.filter(r => r[0]>=from && r[0]<=to && (camps.length===0 || camps.includes(r[1])));
+  // Investimento de mídia só se aplica à visão geral ou aos leads pagos.
+  const mk = leadType === 'organic' ? [] : DATA.mk.filter(r => r[0]>=from && r[0]<=to && (camps.length===0 || camps.includes(r[1])));
 
-  // Funnel totals. Vendas = quantidade de e-mails únicos com contrato fechado.
-  // paidLead está no índice 9 nas linhas processadas ao vivo.
-  let lead=0, paidLead=0, mql=0, mqlp=0, legacyVendas=0;
+  let lead=0, mql=0, mqlp=0, legacyVendas=0;
+  let allLead=0, allPaidLead=0;
   for(const r of crm){
-    lead+=r[3];
-    if(r.length > 9) paidLead += numValue(r[9]);
-    mql+=r[4]; mqlp+=r[5]; legacyVendas+=r[6];
+    allLead += numValue(r[3]);
+    allPaidLead += numValue(r[9]);
+    lead += crmMetricByLeadType(r, 3, 9, leadType);
+    mql  += crmMetricByLeadType(r, 4, 10, leadType);
+    mqlp += crmMetricByLeadType(r, 5, 11, leadType);
+    if(leadType === 'all') legacyVendas += numValue(r[6]);
   }
-  const paidLeadDataAvailable = DATA.crm.some(r => r.length > 9);
-  const organicLead = paidLeadDataAvailable ? Math.max(0, lead - paidLead) : 0;
-  const saleEmailDataAvailable = crmHasSaleEmailData(DATA.crm);
-  const vendas = saleEmailDataAvailable ? uniqueSaleEmails(crm).size : legacyVendas;
+  const paidLeadDataAvailable = leadTypeDataAvailable();
+  const paidLead = leadType === 'paid' ? lead : (leadType === 'organic' ? 0 : allPaidLead);
+  const organicLead = leadType === 'organic' ? lead : (leadType === 'paid' ? 0 : Math.max(0, allLead-allPaidLead));
+  const saleEmailDataAvailable = crmHasSaleEmailData(DATA.crm, leadType);
+  const vendas = saleEmailDataAvailable ? uniqueSaleEmails(crm, leadType).size : legacyVendas;
 
   let invest=0;
-  for(const r of mk){ invest += r[2]; }
+  for(const r of mk) invest += numValue(r[2]);
 
-  // Patrimônio
+  // Patrimônio — somente leads do tipo selecionado.
   const patr = [0,0,0,0,0];
-  for(const r of crm){ if(r[3]>0) patr[r[2]] += r[3]; }
+  for(const r of crm){
+    const selectedLeads = crmMetricByLeadType(r, 3, 9, leadType);
+    if(selectedLeads>0) patr[r[2]] += selectedLeads;
+  }
 
-  // Source. As vendas também são únicas por e-mail dentro de cada origem.
+  // Origem — todo o funil acompanha o tipo de lead selecionado.
   const srcMap = {};
   for(const r of crm){
     const s = classifySource(r[1]);
     if(!srcMap[s]) srcMap[s] = {lead:0,mqlp:0,vendas:0,saleEmails:new Set()};
-    srcMap[s].lead += r[3];
-    srcMap[s].mqlp += r[5];
-    srcMap[s].vendas += r[6];
-    if(Array.isArray(r[8])) for(const email of r[8]) if(normEmail(email)) srcMap[s].saleEmails.add(normEmail(email));
+    srcMap[s].lead += crmMetricByLeadType(r, 3, 9, leadType);
+    srcMap[s].mqlp += crmMetricByLeadType(r, 5, 11, leadType);
+    if(!saleEmailDataAvailable && leadType === 'all') srcMap[s].vendas += numValue(r[6]);
+    for(const email of saleEmailsByLeadType(r, leadType)) if(normEmail(email)) srcMap[s].saleEmails.add(normEmail(email));
   }
   if(saleEmailDataAvailable){
     for(const v of Object.values(srcMap)) v.vendas = v.saleEmails.size;
   }
 
-  // Campaigns by investment
+  // Campanhas por investimento. Em orgânicos não há investimento de mídia atribuído.
   const campMap = {};
   for(const r of mk){
     if(!campMap[r[1]]) campMap[r[1]] = 0;
-    campMap[r[1]] += r[2];
+    campMap[r[1]] += numValue(r[2]);
   }
   const campRanked = Object.entries(campMap).sort((a,b)=>b[1]-a[1]);
 
   // Criativos CRM × marketing
-  // REGRA CORRIGIDA:
-  // - Marketing entra SOMENTE com Ad Name/Criativo + investimento + link.
-  // - CRM entra SOMENTE pela coluna "criativo" com Lead, MQL, MQL+ e Fechou Consultoria.
-  // - O cruzamento é feito pelo nome normalizado do criativo (Ad Name ⇄ CRM.criativo), nunca pelo nome da campanha.
   const creativeMap = {};
   function ensureCreative(label){
     const clean = cleanText(label) || 'Sem criativo informado';
@@ -1254,7 +1299,6 @@ function compute(){
     return creativeMap[key];
   }
 
-  // Marketing: agrega investimento/link por Ad Name. Não usa campanha como fallback do criativo.
   for(const r of mk){
     const adName = cleanText(r[3]);
     const e = ensureCreative(adName);
@@ -1264,15 +1308,14 @@ function compute(){
     if(r[4] && !e.link) e.link = r[4];
   }
 
-  // CRM: agrega resultados por coluna "criativo". Lead/MQL/MQL+/Vendas vêm do CRM.
   for(const r of crm){
     const crmCreative = cleanText(r[7]);
     const e = ensureCreative(crmCreative);
-    e.leads  += numValue(r[3]);
-    e.mql    += numValue(r[4]);
-    e.mqlp   += numValue(r[5]);
-    e.vendas += numValue(r[6]);
-    if(Array.isArray(r[8])) for(const email of r[8]) if(normEmail(email)) e.saleEmails.add(normEmail(email));
+    e.leads += crmMetricByLeadType(r, 3, 9, leadType);
+    e.mql   += crmMetricByLeadType(r, 4, 10, leadType);
+    e.mqlp  += crmMetricByLeadType(r, 5, 11, leadType);
+    if(!saleEmailDataAvailable && leadType === 'all') e.vendas += numValue(r[6]);
+    for(const email of saleEmailsByLeadType(r, leadType)) if(normEmail(email)) e.saleEmails.add(normEmail(email));
     e.crmRows += 1;
     if(r[1]) e.campaigns.add(r[1]);
   }
@@ -1284,7 +1327,7 @@ function compute(){
       return {
         ...v,
         vendas: creativeVendas,
-        conv: v.leads, // compatibilidade visual: coluna agora é Leads do CRM
+        conv: v.leads,
         txconv,
         campaigns: Array.from(v.campaigns).filter(Boolean).slice(0,3).join(' · ')
       };
@@ -1292,23 +1335,23 @@ function compute(){
     .filter(v => v.invest || v.leads || v.mql || v.mqlp || v.vendas)
     .sort((a,b) => (b.invest-a.invest) || (b.vendas-a.vendas) || (b.mqlp-a.mqlp) || (b.mql-a.mql) || (b.leads-a.leads));
 
-  // Diagnóstico: quando o HTML cai no DATA embutido antigo, CRM vem com 7 colunas
-  // e Marketing com 3 colunas — ou seja, não existem r[7] (CRM criativo) nem r[3]/r[4] (Ad Name/link).
-  // Nesse caso, não renderizamos a linha agregada "Sem criativo informado" como se fosse resultado real.
   const hasCreativeSource = DATA.mk.some(r => cleanText(r[3])) || DATA.crm.some(r => cleanText(r[7]));
 
-  // Monthly. Cada mês conta uma vez cada e-mail comprador.
+  // Tendência mensal também respeita o tipo de lead.
   const monthly = {};
   for(const r of crm){
     const m = r[0].slice(0,7);
     if(!monthly[m]) monthly[m] = {lead:0,mql:0,mqlp:0,vendas:0,invest:0,saleEmails:new Set()};
-    monthly[m].lead+=r[3]; monthly[m].mql+=r[4]; monthly[m].mqlp+=r[5]; monthly[m].vendas+=r[6];
-    if(Array.isArray(r[8])) for(const email of r[8]) if(normEmail(email)) monthly[m].saleEmails.add(normEmail(email));
+    monthly[m].lead += crmMetricByLeadType(r, 3, 9, leadType);
+    monthly[m].mql  += crmMetricByLeadType(r, 4, 10, leadType);
+    monthly[m].mqlp += crmMetricByLeadType(r, 5, 11, leadType);
+    if(!saleEmailDataAvailable && leadType === 'all') monthly[m].vendas += numValue(r[6]);
+    for(const email of saleEmailsByLeadType(r, leadType)) if(normEmail(email)) monthly[m].saleEmails.add(normEmail(email));
   }
   for(const r of mk){
     const m = r[0].slice(0,7);
     if(!monthly[m]) monthly[m] = {lead:0,mql:0,mqlp:0,vendas:0,invest:0,saleEmails:new Set()};
-    monthly[m].invest += r[2];
+    monthly[m].invest += numValue(r[2]);
   }
   const monthlyArr = Object.entries(monthly).sort().map(([m,v])=>({
     month:m,
@@ -1319,7 +1362,7 @@ function compute(){
     invest:v.invest
   }));
 
-  return {lead,paidLead,organicLead,paidLeadDataAvailable,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource,
+  return {lead,paidLead,organicLead,paidLeadDataAvailable,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource,leadType,
           totalCRM:crm.length, totalMK:mk.length};
 }
 
@@ -1329,23 +1372,26 @@ function compute(){
 function computePrev(){
   const d1 = new Date(state.from + 'T00:00:00');
   const d2 = new Date(state.to   + 'T00:00:00');
-  const duration = Math.round((d2 - d1) / 86400000) + 1; // dias no período
-  const prevTo   = toISO(offsetDay(d1, -1));             // dia antes do from
-  const prevFrom = toISO(offsetDay(d1, -duration));      // mesmo span para trás
+  const duration = Math.round((d2 - d1) / 86400000) + 1;
+  const prevTo   = toISO(offsetDay(d1, -1));
+  const prevFrom = toISO(offsetDay(d1, -duration));
   const {camps}  = state;
+  const leadType = state.leadType || 'all';
 
   const crm = DATA.crm.filter(r => r[0]>=prevFrom && r[0]<=prevTo && crmMatchesCamps(r[1], camps));
-  const mk  = DATA.mk.filter(r  => r[0]>=prevFrom && r[0]<=prevTo && (camps.length===0 || camps.includes(r[1])));
+  const mk  = leadType === 'organic' ? [] : DATA.mk.filter(r => r[0]>=prevFrom && r[0]<=prevTo && (camps.length===0 || camps.includes(r[1])));
 
   let lead=0, paidLead=0, mql=0, mqlp=0, legacyVendas=0, invest=0;
   for(const r of crm){
-    lead+=r[3];
-    if(r.length > 9) paidLead += numValue(r[9]);
-    mql+=r[4]; mqlp+=r[5]; legacyVendas+=r[6];
+    lead += crmMetricByLeadType(r, 3, 9, leadType);
+    mql  += crmMetricByLeadType(r, 4, 10, leadType);
+    mqlp += crmMetricByLeadType(r, 5, 11, leadType);
+    if(leadType === 'all') legacyVendas += numValue(r[6]);
   }
-  const paidLeadDataAvailable = DATA.crm.some(r => r.length > 9);
-  const vendas = crmHasSaleEmailData(DATA.crm) ? uniqueSaleEmails(crm).size : legacyVendas;
-  for(const r of mk)  invest += r[2];
+  paidLead = leadType === 'paid' ? lead : (leadType === 'organic' ? 0 : crm.reduce((sum,r)=>sum+numValue(r[9]),0));
+  const paidLeadDataAvailable = leadTypeDataAvailable();
+  const vendas = crmHasSaleEmailData(DATA.crm, leadType) ? uniqueSaleEmails(crm, leadType).size : legacyVendas;
+  for(const r of mk) invest += numValue(r[2]);
 
   return {lead, paidLead, paidLeadDataAvailable, mql, mqlp, vendas, invest, prevFrom, prevTo, duration};
 }
@@ -1469,13 +1515,17 @@ function initCreativeSort(){
 
 function render(){
   const M = compute();
-  const {lead,paidLead,organicLead,paidLeadDataAvailable,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource} = M;
+  const {lead,paidLead,organicLead,paidLeadDataAvailable,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource,leadType} = M;
+  const costApplicable = leadType !== 'organic';
 
   // Period label
-  document.getElementById('periodLabel').textContent = `${fmtDate(state.from)} → ${fmtDate(state.to)} · ${monthlyArr.length} meses · ${fmt(lead+mql+mqlp+vendas)} eventos`;
+  document.getElementById('periodLabel').textContent = `${fmtDate(state.from)} → ${fmtDate(state.to)} · ${leadTypeLabel(leadType)} · ${monthlyArr.length} meses · ${fmt(lead+mql+mqlp+vendas)} eventos`;
 
   // KPIs
   document.getElementById('kpiInvest').textContent = fmtMoneyInt(invest);
+  document.getElementById('kpiInvestSub').textContent = costApplicable ? 'Mídia paga' : 'Não se aplica a leads orgânicos';
+  document.getElementById('kpiCPLGeralSub').textContent = leadType === 'paid' ? 'Investimento ÷ leads pagos' : (leadType === 'organic' ? 'Não se aplica a leads orgânicos' : 'Investimento ÷ todos os leads');
+  document.getElementById('kpiCPLPagoSub').textContent = leadType === 'organic' ? 'Não se aplica a leads orgânicos' : 'Fase igfb/ggs ou yt + medium resp';
   document.getElementById('kpiLeads').textContent = fmt(lead);
   document.getElementById('kpiLeadsPagos').textContent = paidLeadDataAvailable ? fmt(paidLead) : '—';
   document.getElementById('kpiLeadsOrganicos').textContent = paidLeadDataAvailable ? fmt(organicLead) : '—';
@@ -1483,17 +1533,17 @@ function render(){
   document.getElementById('kpiMQLp').textContent = fmt(mqlp);
   document.getElementById('kpiVendas').textContent = fmt(vendas);
 
-  const cplGeral = lead ? invest/lead : 0;
-  const cplPago  = paidLeadDataAvailable && paidLead ? invest/paidLead : 0;
-  const cpmql  = mql    ? invest/mql    : 0;
-  const cpmqlp = mqlp   ? invest/mqlp   : 0;
-  const cac    = vendas ? invest/vendas : 0;
+  const cplGeral = costApplicable && lead ? invest/lead : 0;
+  const cplPago  = costApplicable && paidLeadDataAvailable && paidLead ? invest/paidLead : 0;
+  const cpmql  = costApplicable && mql ? invest/mql : 0;
+  const cpmqlp = costApplicable && mqlp ? invest/mqlp : 0;
+  const cac    = costApplicable && vendas ? invest/vendas : 0;
 
-  document.getElementById('kpiCPLGeral').textContent = lead ? fmtMoney(cplGeral) : '—';
-  document.getElementById('kpiCPLPago').textContent = paidLeadDataAvailable && paidLead ? fmtMoney(cplPago) : '—';
-  document.getElementById('kpiCPMQL').textContent = mql ? `R$ ${fmtMoney(cpmql)}` : '—';
-  document.getElementById('kpiCPMQLp').textContent = mqlp ? `R$ ${fmtMoney(cpmqlp)}` : '—';
-  document.getElementById('kpiCAC').textContent = vendas ? `R$ ${fmtMoneyInt(cac)}` : '—';
+  document.getElementById('kpiCPLGeral').textContent = costApplicable && lead ? fmtMoney(cplGeral) : '—';
+  document.getElementById('kpiCPLPago').textContent = costApplicable && paidLeadDataAvailable && paidLead ? fmtMoney(cplPago) : '—';
+  document.getElementById('kpiCPMQL').textContent = costApplicable && mql ? `R$ ${fmtMoney(cpmql)}` : '—';
+  document.getElementById('kpiCPMQLp').textContent = costApplicable && mqlp ? `R$ ${fmtMoney(cpmqlp)}` : '—';
+  document.getElementById('kpiCAC').textContent = costApplicable && vendas ? `R$ ${fmtMoneyInt(cac)}` : '—';
 
   const rateL2M  = lead ? mql/lead : 0;
   const rateM2Mp = mql ? mqlp/mql : 0;
@@ -1512,15 +1562,19 @@ function render(){
   })();
   const hintLabel = durLabel;
 
-  const prevCPLGeral = P.lead ? P.invest/P.lead : 0;
-  const prevCPLPago  = P.paidLeadDataAvailable && P.paidLead ? P.invest/P.paidLead : 0;
+  const prevCPLGeral = costApplicable && P.lead ? P.invest/P.lead : 0;
+  const prevCPLPago  = costApplicable && P.paidLeadDataAvailable && P.paidLead ? P.invest/P.paidLead : 0;
   const prevCPMQLp=P.mqlp   ? P.invest/P.mqlp   : 0;
   const prevCAC  = P.vendas ? P.invest/P.vendas : 0;
 
   setComp('compInvest', {...compBadge(invest, P.invest, false),  hint: hintLabel});
   setComp('compLeads',  {...compBadge(lead,   P.lead,   false),  hint: hintLabel});
-  setComp('compCPLGeral', {...compBadge(cplGeral, prevCPLGeral, true), hint: hintLabel});
-  if(paidLeadDataAvailable){
+  if(costApplicable){
+    setComp('compCPLGeral', {...compBadge(cplGeral, prevCPLGeral, true), hint: hintLabel});
+  } else {
+    setComp('compCPLGeral', {cls:'none', pct:'—', hint:'não se aplica'});
+  }
+  if(costApplicable && paidLeadDataAvailable){
     setComp('compCPLPago', {...compBadge(cplPago, prevCPLPago, true), hint: hintLabel});
   } else {
     setComp('compCPLPago', {cls:'none', pct:'—', hint:'aguardando Fase/Medium'});
@@ -1555,16 +1609,16 @@ function render(){
   document.getElementById('lossMp2Vsub').textContent = mqlp ? `${(lossMp2V/mqlp*100).toFixed(1).replace('.',',')}% queda` : '—';
 
   // Big cost cards
-  document.getElementById('bigCPLGeral').textContent = lead ? fmtMoney(cplGeral) : '—';
+  document.getElementById('bigCPLGeral').textContent = costApplicable && lead ? fmtMoney(cplGeral) : '—';
   document.getElementById('bigCPLGeralInvest').textContent = `R$ ${fmtMoney(invest)}`;
   document.getElementById('bigCPLGeralLeads').textContent = fmt(lead);
-  document.getElementById('bigCPLPago').textContent = paidLeadDataAvailable && paidLead ? fmtMoney(cplPago) : '—';
+  document.getElementById('bigCPLPago').textContent = costApplicable && paidLeadDataAvailable && paidLead ? fmtMoney(cplPago) : '—';
   document.getElementById('bigCPLPagoInvest').textContent = `R$ ${fmtMoney(invest)}`;
-  document.getElementById('bigCPLPagoLeads').textContent = paidLeadDataAvailable ? fmt(paidLead) : '—';
-  document.getElementById('bigCPMQLp').textContent  = mqlp ? fmtMoney(cpmqlp) : '—';
+  document.getElementById('bigCPLPagoLeads').textContent = costApplicable && paidLeadDataAvailable ? fmt(paidLead) : '—';
+  document.getElementById('bigCPMQLp').textContent  = costApplicable && mqlp ? fmtMoney(cpmqlp) : '—';
   document.getElementById('bigMQL').textContent     = fmt(mql);
   document.getElementById('bigMQLp').textContent    = fmt(mqlp);
-  document.getElementById('bigCAC').textContent     = vendas ? fmtMoneyInt(cac) : '—';
+  document.getElementById('bigCAC').textContent     = costApplicable && vendas ? fmtMoneyInt(cac) : '—';
   document.getElementById('bigVendas').textContent  = fmt(vendas);
   document.getElementById('bigConvTotal').textContent = fmtPct(totalConv);
 
@@ -1804,6 +1858,7 @@ function initFilters(){
     e.stopPropagation();
     periodDD.classList.toggle('open');
     document.getElementById('campDropdown').classList.remove('open');
+    document.getElementById('leadTypeDropdown').classList.remove('open');
   });
   document.addEventListener('click', e => {
     if(!periodDD.contains(e.target) && e.target !== periodBtn) periodDD.classList.remove('open');
@@ -1813,6 +1868,37 @@ function initFilters(){
   const initPreset = detectActivePreset();
   if(initPreset !== 'custom') applyPreset(initPreset, false);
   else periodLbl.textContent = `${fmtDate(state.from)} – ${fmtDate(state.to)}`;
+
+  // ── Tipo de lead ───────────────────────────
+  const leadTypeBtn = document.getElementById('leadTypeBtn');
+  const leadTypeDD = document.getElementById('leadTypeDropdown');
+  const leadTypeLbl = document.getElementById('leadTypeBtnLabel');
+  let pendingLeadType = state.leadType || 'all';
+
+  function updateLeadTypeUI(){
+    leadTypeLbl.textContent = leadTypeLabel(pendingLeadType);
+    document.querySelectorAll('.lead-type-opt').forEach(opt => {
+      opt.classList.toggle('active', opt.dataset.leadType === pendingLeadType);
+    });
+  }
+  updateLeadTypeUI();
+
+  document.querySelectorAll('.lead-type-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      pendingLeadType = opt.dataset.leadType || 'all';
+      updateLeadTypeUI();
+      leadTypeDD.classList.remove('open');
+    });
+  });
+  leadTypeBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    leadTypeDD.classList.toggle('open');
+    periodDD.classList.remove('open');
+    document.getElementById('campDropdown').classList.remove('open');
+  });
+  document.addEventListener('click', e => {
+    if(!leadTypeDD.contains(e.target) && e.target !== leadTypeBtn) leadTypeDD.classList.remove('open');
+  });
 
   // ── Campaign list ──────────────────────────
   const campInvTotals = {};
@@ -1837,6 +1923,7 @@ function initFilters(){
     e.stopPropagation();
     dd.classList.toggle('open');
     periodDD.classList.remove('open');
+    leadTypeDD.classList.remove('open');
     if(dd.classList.contains('open')) document.getElementById('campSearch').focus();
   });
   document.addEventListener('click', e => {
@@ -1916,15 +2003,19 @@ function initFilters(){
     state.to   = dt.value || DATE_MAX_ABS;
     const checked = Array.from(campList.querySelectorAll('input:checked')).map(i=>i.value);
     state.camps = (checked.length === DATA.camps.length) ? [] : checked;
+    state.leadType = pendingLeadType;
     render();
     dd.classList.remove('open');
     periodDD.classList.remove('open');
+    leadTypeDD.classList.remove('open');
   }
 
   document.getElementById('applyBtn').addEventListener('click', applyFiltersAndRender);
 
   document.getElementById('resetBtn').addEventListener('click', () => {
-    state.from = DATE_MIN_DEFAULT; state.to = DATE_MAX_DEFAULT; state.camps = [];
+    state.from = DATE_MIN_DEFAULT; state.to = DATE_MAX_DEFAULT; state.camps = []; state.leadType = 'all';
+    pendingLeadType = 'all';
+    updateLeadTypeUI();
     campList.querySelectorAll('input').forEach(i => i.checked = true);
     campSearch.value = '';
     campList.querySelectorAll('label.multi-opt').forEach(o => o.classList.remove('camp-opt-hidden'));
