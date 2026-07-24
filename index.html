@@ -194,7 +194,7 @@
   .apply-btn:hover{box-shadow:0 0 16px var(--gold-glow);}
 
   /* ─── KPI ROW ─── */
-  .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:44px;}
+  .kpi-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:44px;}
   .kpi{background:linear-gradient(180deg,var(--bg-2),var(--bg-1));padding:22px 20px 18px;position:relative;overflow:hidden;}
   .kpi::before{content:'';position:absolute;top:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);opacity:.4;}
   .kpi-label{font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:500;}
@@ -234,6 +234,7 @@
   /* ─── GRIDS / CARDS ─── */
   .grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;}
   .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
   .card{background:linear-gradient(180deg,var(--bg-2),var(--bg-1));border:1px solid var(--line);padding:24px 28px;}
   .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
   .card-title{font-family:var(--serif);font-size:17px;font-weight:400;letter-spacing:.01em;}
@@ -327,7 +328,7 @@
     .main{padding:24px 24px 48px;}
     .kpi-row{grid-template-columns:repeat(3,1fr);}
     .grid-2{grid-template-columns:1fr;}
-    .grid-3{grid-template-columns:1fr 1fr;}
+    .grid-3,.grid-4{grid-template-columns:1fr 1fr;}
     .funnel-grid{grid-template-columns:110px 1fr 110px;}
     h1{font-size:32px;}
   }
@@ -428,7 +429,7 @@
     .side-rate-label{font-size:8px;}
 
     /* Grids */
-    .grid-2,.grid-3{grid-template-columns:1fr;}
+    .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
 
     /* Cards */
     .card{padding:16px 14px;}
@@ -577,7 +578,9 @@
     <!-- KPIs -->
     <div class="kpi-row">
       <div class="kpi"><div class="kpi-label">Investimento</div><div class="kpi-val"><span class="currency">R$</span><span id="kpiInvest">—</span></div><div class="kpi-sub" id="kpiInvestSub">Mídia paga</div><div class="kpi-comp" id="compInvest"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
-      <div class="kpi"><div class="kpi-label">Leads</div><div class="kpi-val" id="kpiLeads">—</div><div class="kpi-sub">CPL <span class="delta" id="kpiCPL">—</span></div><div class="kpi-comp" id="compLeads"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
+      <div class="kpi"><div class="kpi-label">Leads</div><div class="kpi-val" id="kpiLeads">—</div><div class="kpi-sub">Pagos <span class="delta" id="kpiLeadsPagos">—</span> · Orgânicos <span id="kpiLeadsOrganicos">—</span></div><div class="kpi-comp" id="compLeads"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
+      <div class="kpi"><div class="kpi-label">CPL Geral</div><div class="kpi-val"><span class="currency">R$</span><span id="kpiCPLGeral">—</span></div><div class="kpi-sub">Investimento ÷ todos os leads</div><div class="kpi-comp" id="compCPLGeral"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
+      <div class="kpi"><div class="kpi-label">CPL Pago</div><div class="kpi-val"><span class="currency">R$</span><span id="kpiCPLPago">—</span></div><div class="kpi-sub">Fase igfb/ggs ou yt + medium resp</div><div class="kpi-comp" id="compCPLPago"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
       <div class="kpi"><div class="kpi-label">MQL</div><div class="kpi-val" id="kpiMQL">—</div><div class="kpi-sub">Tx. <span class="delta" id="kpiMQLrate">—</span> · CPMQL <span id="kpiCPMQL">—</span></div><div class="kpi-comp" id="compMQL"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
       <div class="kpi"><div class="kpi-label">MQL+</div><div class="kpi-val" id="kpiMQLp">—</div><div class="kpi-sub">Tx. <span class="delta" id="kpiMQLprate">—</span> · CPMQL+ <span id="kpiCPMQLp">—</span></div><div class="kpi-comp" id="compMQLp"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
       <div class="kpi"><div class="kpi-label">Vendas únicas</div><div class="kpi-val" id="kpiVendas">—</div><div class="kpi-sub">CAC <span class="delta up" id="kpiCAC">—</span></div><div class="kpi-comp" id="compVendas"><span class="comp-pct"></span><span class="comp-hint"></span></div></div>
@@ -635,13 +638,20 @@
     <!-- CUSTOS -->
     <div class="section" id="custos">
       <div class="section-head"><h2 class="section-title">Custo por <em>etapa</em></h2><span class="section-tag">Eficiência 02</span></div>
-      <div class="grid-3">
+      <div class="grid-4">
         <div class="card">
-          <div class="card-head"><div class="card-title">CPL</div><div class="card-sub">Custo por Lead</div></div>
-          <div class="card-cpa"><span class="currency">R$</span><span id="bigCPL">—</span></div>
+          <div class="card-head"><div class="card-title">CPL Geral</div><div class="card-sub">Pagos + orgânicos</div></div>
+          <div class="card-cpa"><span class="currency">R$</span><span id="bigCPLGeral">—</span></div>
           <div style="margin-top:16px;height:1px;background:var(--line)"></div>
-          <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:11.5px"><span style="color:var(--gray-2)">Total investido</span><span style="font-family:var(--mono);color:var(--ice)" id="bigCPLinvest">—</span></div>
-          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11.5px"><span style="color:var(--gray-2)">Leads gerados</span><span style="font-family:var(--mono);color:var(--ice)" id="bigCPLleads">—</span></div>
+          <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:11.5px"><span style="color:var(--gray-2)">Total investido</span><span style="font-family:var(--mono);color:var(--ice)" id="bigCPLGeralInvest">—</span></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11.5px"><span style="color:var(--gray-2)">Todos os leads</span><span style="font-family:var(--mono);color:var(--ice)" id="bigCPLGeralLeads">—</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">CPL Pago</div><div class="card-sub">Somente mídia paga</div></div>
+          <div class="card-cpa"><span class="currency">R$</span><span id="bigCPLPago">—</span></div>
+          <div style="margin-top:16px;height:1px;background:var(--line)"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:11.5px"><span style="color:var(--gray-2)">Total investido</span><span style="font-family:var(--mono);color:var(--ice)" id="bigCPLPagoInvest">—</span></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11.5px"><span style="color:var(--gray-2)">Leads pagos</span><span style="font-family:var(--mono);color:var(--ice)" id="bigCPLPagoLeads">—</span></div>
         </div>
         <div class="card">
           <div class="card-head"><div class="card-title">CPMQL+</div><div class="card-sub">Custo por MQL+</div></div>
@@ -846,6 +856,17 @@ function normEmail(s){
   const match = raw.match(/[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+/i);
   return match ? match[0].toLowerCase() : '';
 }
+// Regra de lead pago solicitada:
+// - Fase contém "igfb" ou "ggs"; OU
+// - Fase contém "yt" E o campo Medium contém "resp".
+function isPaidCrmLead(fase, medium){
+  const f = normKey(fase);
+  const m = normKey(medium);
+  const isIgfb = f.includes('igfb');
+  const isGgs  = f.includes('ggs');
+  const isYt   = f === 'yt' || f.includes('youtube') || /(^|[^a-z0-9])yt([^a-z0-9]|$)/.test(f);
+  return isIgfb || isGgs || (isYt && m.includes('resp'));
+}
 function pickHeader(headers, patterns){
   const exact = headers.findIndex(h => patterns.some(re => re.exact && h === re.value));
   if(exact >= 0) return exact;
@@ -913,6 +934,17 @@ async function fetchLiveData(){
   const iMQL   = h.findIndex(x => x === 'mql');
   const iMQLp  = h.findIndex(x => /mql\+|mqlplus/.test(x));
   const iStatus= colIx(/status/);
+  const iFase  = pickHeader(h, [
+    {exact:true, value:'fase'},
+    {exact:true, value:'phase'},
+    {value:/^fase$|^phase$/}
+  ]);
+  const iMedium = pickHeader(h, [
+    {exact:true, value:'medium'},
+    {exact:true, value:'utm medium'},
+    {exact:true, value:'utm_medium'},
+    {value:/^medium$|utm.?medium|meio/}
+  ]);
   const iFech  = pickHeader(h, [
     {exact:true, value:'fechou consultoria'},
     {value:/fechou.*consultoria|consultoria.*fechou|^fechou$|fechou/}
@@ -930,7 +962,7 @@ async function fetchLiveData(){
   ]);
 
   console.log('[DEBUG] CRM: linhas =', crmRows.length, '| cabeçalho =', h);
-  console.log('[DEBUG] CRM colunas detectadas → data:', iDate, 'utm:', iUtm, 'patrim:', iPatr, 'lead:', iLead, 'mql:', iMQL, 'mql+:', iMQLp, 'status:', iStatus, 'fechou:', iFech, 'criativo:', iCriativo, 'email:', iEmail);
+  console.log('[DEBUG] CRM colunas detectadas → data:', iDate, 'utm:', iUtm, 'patrim:', iPatr, 'lead:', iLead, 'mql:', iMQL, 'mql+:', iMQLp, 'status:', iStatus, 'fase:', iFase, 'medium:', iMedium, 'fechou:', iFech, 'criativo:', iCriativo, 'email:', iEmail);
   if(iDate < 0) console.error('[DEBUG] ⚠ Coluna de DATA não encontrada no CRM — nenhuma linha será usada!');
 
   let crmMin=null, crmMax=null, crmSkipped=0, saleRowsWithoutEmail=0;
@@ -945,8 +977,12 @@ async function fetchLiveData(){
     const patr  = normPatr(r[iPatr]);
     const criativo = iCriativo >= 0 ? cleanText(r[iCriativo]) : '';
     const key = d+'|'+croot+'|'+patr+'|'+normCreativeKey(criativo);
-    if(!agg[key]) agg[key] = {l:0,m:0,mp:0,criativo:criativo,saleEmails:new Set()};
-    if(parseInt(r[iLead])>0) agg[key].l += 1;
+    if(!agg[key]) agg[key] = {l:0,lp:0,m:0,mp:0,criativo:criativo,saleEmails:new Set()};
+    const isLead = parseInt(r[iLead]) > 0;
+    if(isLead){
+      agg[key].l += 1;
+      if(iFase >= 0 && isPaidCrmLead(r[iFase], iMedium >= 0 ? r[iMedium] : '')) agg[key].lp += 1;
+    }
     if(parseInt(r[iMQL])>0)  agg[key].m += 1;
     if(parseInt(r[iMQLp])>0) agg[key].mp += 1;
     const fechouConsultoria = iFech >= 0 ? r[iFech] : '';
@@ -961,10 +997,12 @@ async function fetchLiveData(){
   const newCrm = Object.entries(agg).map(([k,v]) => {
     const [d,c,p] = k.split('|');
     const saleEmails = Array.from(v.saleEmails);
-    return [d, c, parseInt(p), v.l, v.m, v.mp, saleEmails.length, v.criativo || '', saleEmails];
+    return [d, c, parseInt(p), v.l, v.m, v.mp, saleEmails.length, v.criativo || '', saleEmails, v.lp];
   });
   console.log('[DEBUG] CRM: intervalo de datas', crmMin, '→', crmMax, '| linhas ignoradas (data inválida):', crmSkipped, '| vendas sem e-mail ignoradas:', saleRowsWithoutEmail);
   if(iEmail < 0) console.error('[DEBUG] ⚠ Coluna de E-MAIL não encontrada no CRM — não é possível deduplicar vendas por e-mail.');
+  if(iFase < 0) console.error('[DEBUG] ⚠ Coluna FASE não encontrada no CRM — CPL Pago ficará indisponível.');
+  if(iMedium < 0) console.warn('[DEBUG] ⚠ Coluna MEDIUM não encontrada no CRM — leads da fase YT não entrarão no CPL Pago, pois exigem medium contendo resp.');
 
   const mkRows = parseCSV(mkCSV);
   const hm = mkRows[0].map(normHeader);
@@ -1145,8 +1183,15 @@ function compute(){
   const mk  = DATA.mk.filter(r => r[0]>=from && r[0]<=to && (camps.length===0 || camps.includes(r[1])));
 
   // Funnel totals. Vendas = quantidade de e-mails únicos com contrato fechado.
-  let lead=0, mql=0, mqlp=0, legacyVendas=0;
-  for(const r of crm){ lead+=r[3]; mql+=r[4]; mqlp+=r[5]; legacyVendas+=r[6]; }
+  // paidLead está no índice 9 nas linhas processadas ao vivo.
+  let lead=0, paidLead=0, mql=0, mqlp=0, legacyVendas=0;
+  for(const r of crm){
+    lead+=r[3];
+    if(r.length > 9) paidLead += numValue(r[9]);
+    mql+=r[4]; mqlp+=r[5]; legacyVendas+=r[6];
+  }
+  const paidLeadDataAvailable = DATA.crm.some(r => r.length > 9);
+  const organicLead = paidLeadDataAvailable ? Math.max(0, lead - paidLead) : 0;
   const saleEmailDataAvailable = crmHasSaleEmailData(DATA.crm);
   const vendas = saleEmailDataAvailable ? uniqueSaleEmails(crm).size : legacyVendas;
 
@@ -1274,7 +1319,7 @@ function compute(){
     invest:v.invest
   }));
 
-  return {lead,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource,
+  return {lead,paidLead,organicLead,paidLeadDataAvailable,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource,
           totalCRM:crm.length, totalMK:mk.length};
 }
 
@@ -1292,12 +1337,17 @@ function computePrev(){
   const crm = DATA.crm.filter(r => r[0]>=prevFrom && r[0]<=prevTo && crmMatchesCamps(r[1], camps));
   const mk  = DATA.mk.filter(r  => r[0]>=prevFrom && r[0]<=prevTo && (camps.length===0 || camps.includes(r[1])));
 
-  let lead=0, mql=0, mqlp=0, legacyVendas=0, invest=0;
-  for(const r of crm){ lead+=r[3]; mql+=r[4]; mqlp+=r[5]; legacyVendas+=r[6]; }
+  let lead=0, paidLead=0, mql=0, mqlp=0, legacyVendas=0, invest=0;
+  for(const r of crm){
+    lead+=r[3];
+    if(r.length > 9) paidLead += numValue(r[9]);
+    mql+=r[4]; mqlp+=r[5]; legacyVendas+=r[6];
+  }
+  const paidLeadDataAvailable = DATA.crm.some(r => r.length > 9);
   const vendas = crmHasSaleEmailData(DATA.crm) ? uniqueSaleEmails(crm).size : legacyVendas;
   for(const r of mk)  invest += r[2];
 
-  return {lead, mql, mqlp, vendas, invest, prevFrom, prevTo, duration};
+  return {lead, paidLead, paidLeadDataAvailable, mql, mqlp, vendas, invest, prevFrom, prevTo, duration};
 }
 
 // Gera o badge de comparação: pct, label, classe CSS
@@ -1419,7 +1469,7 @@ function initCreativeSort(){
 
 function render(){
   const M = compute();
-  const {lead,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource} = M;
+  const {lead,paidLead,organicLead,paidLeadDataAvailable,mql,mqlp,vendas,invest,patr,srcMap,campRanked,creativeRanked,monthlyArr,hasCreativeSource} = M;
 
   // Period label
   document.getElementById('periodLabel').textContent = `${fmtDate(state.from)} → ${fmtDate(state.to)} · ${monthlyArr.length} meses · ${fmt(lead+mql+mqlp+vendas)} eventos`;
@@ -1427,16 +1477,20 @@ function render(){
   // KPIs
   document.getElementById('kpiInvest').textContent = fmtMoneyInt(invest);
   document.getElementById('kpiLeads').textContent = fmt(lead);
+  document.getElementById('kpiLeadsPagos').textContent = paidLeadDataAvailable ? fmt(paidLead) : '—';
+  document.getElementById('kpiLeadsOrganicos').textContent = paidLeadDataAvailable ? fmt(organicLead) : '—';
   document.getElementById('kpiMQL').textContent = fmt(mql);
   document.getElementById('kpiMQLp').textContent = fmt(mqlp);
   document.getElementById('kpiVendas').textContent = fmt(vendas);
 
-  const cpl    = lead   ? invest/lead   : 0;
+  const cplGeral = lead ? invest/lead : 0;
+  const cplPago  = paidLeadDataAvailable && paidLead ? invest/paidLead : 0;
   const cpmql  = mql    ? invest/mql    : 0;
   const cpmqlp = mqlp   ? invest/mqlp   : 0;
   const cac    = vendas ? invest/vendas : 0;
 
-  document.getElementById('kpiCPL').textContent = lead ? `R$ ${fmtMoney(cpl)}` : '—';
+  document.getElementById('kpiCPLGeral').textContent = lead ? fmtMoney(cplGeral) : '—';
+  document.getElementById('kpiCPLPago').textContent = paidLeadDataAvailable && paidLead ? fmtMoney(cplPago) : '—';
   document.getElementById('kpiCPMQL').textContent = mql ? `R$ ${fmtMoney(cpmql)}` : '—';
   document.getElementById('kpiCPMQLp').textContent = mqlp ? `R$ ${fmtMoney(cpmqlp)}` : '—';
   document.getElementById('kpiCAC').textContent = vendas ? `R$ ${fmtMoneyInt(cac)}` : '—';
@@ -1458,12 +1512,19 @@ function render(){
   })();
   const hintLabel = durLabel;
 
-  const prevCPL  = P.lead   ? P.invest/P.lead   : 0;
+  const prevCPLGeral = P.lead ? P.invest/P.lead : 0;
+  const prevCPLPago  = P.paidLeadDataAvailable && P.paidLead ? P.invest/P.paidLead : 0;
   const prevCPMQLp=P.mqlp   ? P.invest/P.mqlp   : 0;
   const prevCAC  = P.vendas ? P.invest/P.vendas : 0;
 
   setComp('compInvest', {...compBadge(invest, P.invest, false),  hint: hintLabel});
   setComp('compLeads',  {...compBadge(lead,   P.lead,   false),  hint: hintLabel});
+  setComp('compCPLGeral', {...compBadge(cplGeral, prevCPLGeral, true), hint: hintLabel});
+  if(paidLeadDataAvailable){
+    setComp('compCPLPago', {...compBadge(cplPago, prevCPLPago, true), hint: hintLabel});
+  } else {
+    setComp('compCPLPago', {cls:'none', pct:'—', hint:'aguardando Fase/Medium'});
+  }
   setComp('compMQL',    {...compBadge(mql,    P.mql,    false),  hint: hintLabel});
   setComp('compMQLp',   {...compBadge(mqlp,   P.mqlp,   false),  hint: hintLabel});
   setComp('compVendas', {...compBadge(vendas,  P.vendas, false),  hint: hintLabel});
@@ -1494,9 +1555,12 @@ function render(){
   document.getElementById('lossMp2Vsub').textContent = mqlp ? `${(lossMp2V/mqlp*100).toFixed(1).replace('.',',')}% queda` : '—';
 
   // Big cost cards
-  document.getElementById('bigCPL').textContent     = lead ? fmtMoney(cpl) : '—';
-  document.getElementById('bigCPLinvest').textContent = `R$ ${fmtMoney(invest)}`;
-  document.getElementById('bigCPLleads').textContent = fmt(lead);
+  document.getElementById('bigCPLGeral').textContent = lead ? fmtMoney(cplGeral) : '—';
+  document.getElementById('bigCPLGeralInvest').textContent = `R$ ${fmtMoney(invest)}`;
+  document.getElementById('bigCPLGeralLeads').textContent = fmt(lead);
+  document.getElementById('bigCPLPago').textContent = paidLeadDataAvailable && paidLead ? fmtMoney(cplPago) : '—';
+  document.getElementById('bigCPLPagoInvest').textContent = `R$ ${fmtMoney(invest)}`;
+  document.getElementById('bigCPLPagoLeads').textContent = paidLeadDataAvailable ? fmt(paidLead) : '—';
   document.getElementById('bigCPMQLp').textContent  = mqlp ? fmtMoney(cpmqlp) : '—';
   document.getElementById('bigMQL').textContent     = fmt(mql);
   document.getElementById('bigMQLp').textContent    = fmt(mqlp);
